@@ -1,0 +1,28 @@
+import 'package:flutter/material.dart';
+
+import 'package:ondas_web/core/constants/app_constants.dart';
+import 'package:ondas_web/core/theme/app_theme.dart';
+import 'package:ondas_web/app/router/app_router.dart';
+
+class OndasApp extends StatefulWidget {
+  const OndasApp({super.key});
+
+  @override
+  State<OndasApp> createState() => _OndasAppState();
+}
+
+class _OndasAppState extends State<OndasApp> {
+  late final _router = createRouter();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      title: AppConstants.appName,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
+      routerConfig: _router,
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
