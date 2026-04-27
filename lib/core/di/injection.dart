@@ -28,7 +28,52 @@ import 'package:ondas_web/features/artists/domain/usecases/get_artists_usecase_i
 import 'package:ondas_web/features/artists/domain/usecases/update_artist_usecase.dart';
 import 'package:ondas_web/features/artists/domain/usecases/update_artist_usecase_impl.dart';
 import 'package:ondas_web/features/artists/presentation/bloc/artist_bloc.dart';
+import 'package:ondas_web/features/genres/data/datasources/genre_remote_datasource.dart';
+import 'package:ondas_web/features/genres/data/datasources/genre_remote_datasource_impl.dart';
+import 'package:ondas_web/features/genres/data/repositories/genre_repository_impl.dart';
+import 'package:ondas_web/features/genres/domain/repositories/genre_repository.dart';
+import 'package:ondas_web/features/genres/domain/usecases/create_genre_usecase.dart';
+import 'package:ondas_web/features/genres/domain/usecases/create_genre_usecase_impl.dart';
+import 'package:ondas_web/features/genres/domain/usecases/delete_genre_usecase.dart';
+import 'package:ondas_web/features/genres/domain/usecases/delete_genre_usecase_impl.dart';
+import 'package:ondas_web/features/genres/domain/usecases/get_genre_usecase.dart';
+import 'package:ondas_web/features/genres/domain/usecases/get_genre_usecase_impl.dart';
+import 'package:ondas_web/features/genres/domain/usecases/get_genres_usecase.dart';
+import 'package:ondas_web/features/genres/domain/usecases/get_genres_usecase_impl.dart';
+import 'package:ondas_web/features/genres/domain/usecases/update_genre_usecase.dart';
+import 'package:ondas_web/features/genres/domain/usecases/update_genre_usecase_impl.dart';
+import 'package:ondas_web/features/genres/presentation/bloc/genre_bloc.dart';
 import 'package:ondas_web/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:ondas_web/features/songs/data/datasources/song_remote_datasource.dart';
+import 'package:ondas_web/features/songs/data/datasources/song_remote_datasource_impl.dart';
+import 'package:ondas_web/features/songs/data/repositories/song_repository_impl.dart';
+import 'package:ondas_web/features/songs/domain/repositories/song_repository.dart';
+import 'package:ondas_web/features/songs/domain/usecases/create_song_usecase.dart';
+import 'package:ondas_web/features/songs/domain/usecases/create_song_usecase_impl.dart';
+import 'package:ondas_web/features/songs/domain/usecases/delete_song_usecase.dart';
+import 'package:ondas_web/features/songs/domain/usecases/delete_song_usecase_impl.dart';
+import 'package:ondas_web/features/songs/domain/usecases/get_song_usecase.dart';
+import 'package:ondas_web/features/songs/domain/usecases/get_song_usecase_impl.dart';
+import 'package:ondas_web/features/songs/domain/usecases/get_songs_usecase.dart';
+import 'package:ondas_web/features/songs/domain/usecases/get_songs_usecase_impl.dart';
+import 'package:ondas_web/features/songs/domain/usecases/update_song_usecase.dart';
+import 'package:ondas_web/features/songs/domain/usecases/update_song_usecase_impl.dart';
+import 'package:ondas_web/features/songs/presentation/bloc/song_bloc.dart';
+import 'package:ondas_web/features/albums/data/datasources/album_remote_datasource.dart';
+import 'package:ondas_web/features/albums/data/datasources/album_remote_datasource_impl.dart';
+import 'package:ondas_web/features/albums/data/repositories/album_repository_impl.dart';
+import 'package:ondas_web/features/albums/domain/repositories/album_repository.dart';
+import 'package:ondas_web/features/albums/domain/usecases/create_album_usecase.dart';
+import 'package:ondas_web/features/albums/domain/usecases/create_album_usecase_impl.dart';
+import 'package:ondas_web/features/albums/domain/usecases/delete_album_usecase.dart';
+import 'package:ondas_web/features/albums/domain/usecases/delete_album_usecase_impl.dart';
+import 'package:ondas_web/features/albums/domain/usecases/get_album_usecase.dart';
+import 'package:ondas_web/features/albums/domain/usecases/get_album_usecase_impl.dart';
+import 'package:ondas_web/features/albums/domain/usecases/get_albums_usecase.dart';
+import 'package:ondas_web/features/albums/domain/usecases/get_albums_usecase_impl.dart';
+import 'package:ondas_web/features/albums/domain/usecases/update_album_usecase.dart';
+import 'package:ondas_web/features/albums/domain/usecases/update_album_usecase_impl.dart';
+import 'package:ondas_web/features/albums/presentation/bloc/album_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -45,9 +90,7 @@ Future<void> setupDependencies() async {
   sl.registerLazySingleton<JwtInterceptor>(
     () => JwtInterceptor(sl<SecureStorage>()),
   );
-  sl.registerLazySingleton<DioClient>(
-    () => DioClient(sl<JwtInterceptor>()),
-  );
+  sl.registerLazySingleton<DioClient>(() => DioClient(sl<JwtInterceptor>()));
 
   // ── Auth Feature ───────────────────────────────────────────────────────────
   sl.registerLazySingleton<AuthRemoteDataSource>(
@@ -101,6 +144,103 @@ Future<void> setupDependencies() async {
       createArtistUseCase: sl<CreateArtistUseCase>(),
       updateArtistUseCase: sl<UpdateArtistUseCase>(),
       deleteArtistUseCase: sl<DeleteArtistUseCase>(),
+    ),
+  );
+
+  // ── Genres Feature ─────────────────────────────────────────────────────────
+  sl.registerLazySingleton<GenreRemoteDataSource>(
+    () => GenreRemoteDataSourceImpl(sl<DioClient>()),
+  );
+  sl.registerLazySingleton<GenreRepository>(
+    () => GenreRepositoryImpl(sl<GenreRemoteDataSource>()),
+  );
+  sl.registerLazySingleton<GetGenresUseCase>(
+    () => GetGenresUseCaseImpl(sl<GenreRepository>()),
+  );
+  sl.registerLazySingleton<GetGenreUseCase>(
+    () => GetGenreUseCaseImpl(sl<GenreRepository>()),
+  );
+  sl.registerLazySingleton<CreateGenreUseCase>(
+    () => CreateGenreUseCaseImpl(sl<GenreRepository>()),
+  );
+  sl.registerLazySingleton<UpdateGenreUseCase>(
+    () => UpdateGenreUseCaseImpl(sl<GenreRepository>()),
+  );
+  sl.registerLazySingleton<DeleteGenreUseCase>(
+    () => DeleteGenreUseCaseImpl(sl<GenreRepository>()),
+  );
+  sl.registerFactory<GenreBloc>(
+    () => GenreBloc(
+      getGenresUseCase: sl<GetGenresUseCase>(),
+      getGenreUseCase: sl<GetGenreUseCase>(),
+      createGenreUseCase: sl<CreateGenreUseCase>(),
+      updateGenreUseCase: sl<UpdateGenreUseCase>(),
+      deleteGenreUseCase: sl<DeleteGenreUseCase>(),
+    ),
+  );
+
+  // ── Songs Feature ──────────────────────────────────────────────────────────
+  sl.registerLazySingleton<SongRemoteDataSource>(
+    () => SongRemoteDataSourceImpl(sl<DioClient>()),
+  );
+  sl.registerLazySingleton<SongRepository>(
+    () => SongRepositoryImpl(sl<SongRemoteDataSource>()),
+  );
+  sl.registerLazySingleton<GetSongsUseCase>(
+    () => GetSongsUseCaseImpl(sl<SongRepository>()),
+  );
+  sl.registerLazySingleton<GetSongUseCase>(
+    () => GetSongUseCaseImpl(sl<SongRepository>()),
+  );
+  sl.registerLazySingleton<CreateSongUseCase>(
+    () => CreateSongUseCaseImpl(sl<SongRepository>()),
+  );
+  sl.registerLazySingleton<UpdateSongUseCase>(
+    () => UpdateSongUseCaseImpl(sl<SongRepository>()),
+  );
+  sl.registerLazySingleton<DeleteSongUseCase>(
+    () => DeleteSongUseCaseImpl(sl<SongRepository>()),
+  );
+  sl.registerFactory<SongBloc>(
+    () => SongBloc(
+      getSongsUseCase: sl<GetSongsUseCase>(),
+      getSongUseCase: sl<GetSongUseCase>(),
+      createSongUseCase: sl<CreateSongUseCase>(),
+      updateSongUseCase: sl<UpdateSongUseCase>(),
+      deleteSongUseCase: sl<DeleteSongUseCase>(),
+    ),
+  );
+
+  // ── Albums Feature ─────────────────────────────────────────────────────────
+  sl.registerLazySingleton<AlbumRemoteDataSource>(
+    () => AlbumRemoteDataSourceImpl(sl<DioClient>()),
+  );
+  sl.registerLazySingleton<AlbumRepository>(
+    () => AlbumRepositoryImpl(sl<AlbumRemoteDataSource>()),
+  );
+  sl.registerLazySingleton<GetAlbumsUseCase>(
+    () => GetAlbumsUseCaseImpl(sl<AlbumRepository>()),
+  );
+  sl.registerLazySingleton<GetAlbumUseCase>(
+    () => GetAlbumUseCaseImpl(sl<AlbumRepository>()),
+  );
+  sl.registerLazySingleton<CreateAlbumUseCase>(
+    () => CreateAlbumUseCaseImpl(sl<AlbumRepository>()),
+  );
+  sl.registerLazySingleton<UpdateAlbumUseCase>(
+    () => UpdateAlbumUseCaseImpl(sl<AlbumRepository>()),
+  );
+  sl.registerLazySingleton<DeleteAlbumUseCase>(
+    () => DeleteAlbumUseCaseImpl(sl<AlbumRepository>()),
+  );
+  sl.registerFactory<AlbumBloc>(
+    () => AlbumBloc(
+      getAlbumsUseCase: sl<GetAlbumsUseCase>(),
+      getAlbumUseCase: sl<GetAlbumUseCase>(),
+      createAlbumUseCase: sl<CreateAlbumUseCase>(),
+      updateAlbumUseCase: sl<UpdateAlbumUseCase>(),
+      deleteAlbumUseCase: sl<DeleteAlbumUseCase>(),
+      updateSongUseCase: sl<UpdateSongUseCase>(),
     ),
   );
 }
