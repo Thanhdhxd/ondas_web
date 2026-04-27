@@ -9,11 +9,20 @@ import 'package:ondas_web/core/storage/secure_storage.dart';
 import 'package:ondas_web/features/artists/presentation/bloc/artist_bloc.dart';
 import 'package:ondas_web/features/artists/presentation/screens/artist_form_screen.dart';
 import 'package:ondas_web/features/artists/presentation/screens/artists_screen.dart';
+import 'package:ondas_web/features/genres/presentation/bloc/genre_bloc.dart';
+import 'package:ondas_web/features/genres/presentation/screens/genre_form_screen.dart';
+import 'package:ondas_web/features/genres/presentation/screens/genres_screen.dart';
+import 'package:ondas_web/features/songs/presentation/bloc/song_bloc.dart';
+import 'package:ondas_web/features/songs/presentation/screens/song_form_screen.dart';
+import 'package:ondas_web/features/songs/presentation/screens/songs_screen.dart';
 import 'package:ondas_web/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:ondas_web/features/auth/presentation/screens/login_screen.dart';
 import 'package:ondas_web/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:ondas_web/features/dashboard/presentation/bloc/dashboard_event.dart';
 import 'package:ondas_web/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:ondas_web/features/albums/presentation/bloc/album_bloc.dart';
+import 'package:ondas_web/features/albums/presentation/screens/album_form_screen.dart';
+import 'package:ondas_web/features/albums/presentation/screens/albums_screen.dart';
 
 GoRouter createRouter() {
   return GoRouter(
@@ -29,10 +38,8 @@ GoRouter createRouter() {
         ),
       ),
       ShellRoute(
-        builder: (context, state, child) => AdminShell(
-          currentRoute: state.matchedLocation,
-          child: child,
-        ),
+        builder: (context, state, child) =>
+            AdminShell(currentRoute: state.matchedLocation, child: child),
         routes: [
           GoRoute(
             path: AppConstants.routeDashboard,
@@ -63,9 +70,93 @@ GoRouter createRouter() {
                 name: 'artistEdit',
                 builder: (context, state) => BlocProvider(
                   create: (_) => sl<ArtistBloc>(),
-                  child: ArtistFormScreen(
-                    artistId: state.pathParameters['id'],
-                  ),
+                  child: ArtistFormScreen(artistId: state.pathParameters['id']),
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: AppConstants.routeSongs,
+            name: 'songs',
+            builder: (context, state) => BlocProvider(
+              create: (_) => sl<SongBloc>(),
+              child: const SongsScreen(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'songNew',
+                builder: (context, state) => BlocProvider(
+                  create: (_) => sl<SongBloc>(),
+                  child: const SongFormScreen(),
+                ),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                name: 'songEdit',
+                builder: (context, state) => BlocProvider(
+                  create: (_) => sl<SongBloc>(),
+                  child: SongFormScreen(songId: state.pathParameters['id']),
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: AppConstants.routeGenres,
+            name: 'genres',
+            builder: (context, state) => BlocProvider(
+              create: (_) => sl<GenreBloc>(),
+              child: const GenresScreen(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'genreNew',
+                builder: (context, state) => BlocProvider(
+                  create: (_) => sl<GenreBloc>(),
+                  child: const GenreFormScreen(),
+                ),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                name: 'genreEdit',
+                builder: (context, state) => BlocProvider(
+                  create: (_) => sl<GenreBloc>(),
+                  child: GenreFormScreen(genreId: state.pathParameters['id']),
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: AppConstants.routeAlbums,
+            name: 'albums',
+            builder: (context, state) => BlocProvider(
+              create: (_) => sl<AlbumBloc>(),
+              child: const AlbumsScreen(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'albumNew',
+                builder: (context, state) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(create: (_) => sl<AlbumBloc>()),
+                    BlocProvider(create: (_) => sl<ArtistBloc>()),
+                    BlocProvider(create: (_) => sl<SongBloc>()),
+                  ],
+                  child: const AlbumFormScreen(),
+                ),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                name: 'albumEdit',
+                builder: (context, state) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(create: (_) => sl<AlbumBloc>()),
+                    BlocProvider(create: (_) => sl<ArtistBloc>()),
+                    BlocProvider(create: (_) => sl<SongBloc>()),
+                  ],
+                  child: AlbumFormScreen(albumId: state.pathParameters['id']),
                 ),
               ),
             ],
@@ -97,9 +188,7 @@ class _ErrorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Text('Page not found: ${error?.toString() ?? ''}'),
-      ),
+      body: Center(child: Text('Page not found: ${error?.toString() ?? ''}')),
     );
   }
 }
