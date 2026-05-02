@@ -18,7 +18,6 @@ class SongFormScreen extends StatefulWidget {
   final String? songId;
 
   const SongFormScreen({super.key, this.songId});
-
   bool get isEditing => songId != null;
 
   @override
@@ -31,6 +30,10 @@ class _SongFormScreenState extends State<SongFormScreen> {
   List<SongFormOption<String>> _artistOptions = const [];
   List<SongFormOption<int>> _genreOptions = const [];
   List<SongFormOption<String>> _albumOptions = const [];
+  bool _lyricsLoading = false;
+  bool _lyricsSaving = false;
+  String? _lyricsText;
+  String? _lyricsError;
 
   String? get _songId {
     final id = widget.songId?.trim();
@@ -43,8 +46,96 @@ class _SongFormScreenState extends State<SongFormScreen> {
     super.initState();
     if (widget.isEditing && _songId != null) {
       context.read<SongBloc>().add(SongLoadDetailEvent(id: _songId!));
+      _loadLyrics();
     }
     _loadOptions();
+  }
+
+  Future<void> _loadLyrics() async {
+    if (_songId == null) return;
+    setState(() {
+      _lyricsLoading = true;
+      _lyricsError = null;
+    });
+
+    try {
+      final response = await sl<DioClient>().dio.get(
+        ApiConstants.songLyrics(_songId!),
+      );
+      final body = response.data as Map<String, dynamic>;
+      if (body['success'] != true) {
+        throw Exception(body['message'] as String? ?? 'Khong the tai lyrics');
+      }
+      final data = body['data'] as Map<String, dynamic>?;
+      final lyrics = data?['plainText'] as String?;
+      if (!mounted) return;
+      setState(() {
+        _lyricsText = lyrics ?? '';
+        _lyricsLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _lyricsLoading = false;
+        _lyricsError = 'Khong the tai lyrics';
+      });
+    }
+  }
+
+  Future<void> _saveLyrics(String text) async {
+    if (_songId == null) return;
+    final trimmed = text.trim();
+    setState(() {
+      _lyricsSaving = true;
+    });
+
+    try {
+      if (trimmed.isEmpty) {
+        final response = await sl<DioClient>().dio.delete(
+          ApiConstants.songLyrics(_songId!),
+        );
+        final body = response.data as Map<String, dynamic>;
+        if (body['success'] != true) {
+          throw Exception(body['message'] as String? ?? 'Khong the xoa lyrics');
+        }
+      } else {
+        final response = await sl<DioClient>().dio.put(
+          ApiConstants.songLyricsStatic(_songId!),
+          data: {'plainText': trimmed},
+        );
+        final body = response.data as Map<String, dynamic>;
+        if (body['success'] != true) {
+          throw Exception(body['message'] as String? ?? 'Khong the luu lyrics');
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _lyricsText = trimmed;
+        _lyricsSaving = false;
+        _lyricsError = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            trimmed.isEmpty ? 'Lyrics da duoc xoa.' : 'Lyrics da duoc luu.',
+          ),
+          backgroundColor: AppColors.successLight,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _lyricsSaving = false;
+        _lyricsError = 'Khong the luu lyrics';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Khong the luu lyrics.'),
+          backgroundColor: AppColors.errorLight,
+        ),
+      );
+    }
   }
 
   Future<void> _loadOptions() async {
@@ -65,10 +156,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
       },
       (page) => page.items
           .map(
-            (item) => SongFormOption<String>(
-              value: item.id,
-              label: item.name,
-            ),
+            (item) => SongFormOption<String>(value: item.id, label: item.name),
           )
           .toList(),
     );
@@ -82,18 +170,15 @@ class _SongFormScreenState extends State<SongFormScreen> {
         return const <SongFormOption<int>>[];
       },
       (page) => page.items
-          .map(
-            (item) => SongFormOption<int>(
-              value: item.id,
-              label: item.name,
-            ),
-          )
+          .map((item) => SongFormOption<int>(value: item.id, label: item.name))
           .toList(),
     );
 
-    final albums = await _loadAlbumOptions(onError: (message) {
-      error ??= message;
-    });
+    final albums = await _loadAlbumOptions(
+      onError: (message) {
+        error ??= message;
+      },
+    );
 
     if (!mounted) return;
     setState(() {
@@ -263,10 +348,17 @@ class _SongFormScreenState extends State<SongFormScreen> {
                       isLoading: isOperationLoading,
                       optionsLoading: _isOptionsLoading,
                       optionsError: _optionsError,
+                      lyricsText: _lyricsText,
+                      lyricsLoading: _lyricsLoading,
+                      lyricsSaving: _lyricsSaving,
+                      lyricsError: _lyricsError,
+                      lyricsEnabled: widget.isEditing,
                       artistOptions: _artistOptions,
                       genreOptions: _genreOptions,
                       albumOptions: _albumOptions,
                       onReloadOptions: _loadOptions,
+                      onReloadLyrics: _loadLyrics,
+                      onSaveLyrics: _saveLyrics,
                       onSubmit: _onSubmit,
                     ),
                 ],

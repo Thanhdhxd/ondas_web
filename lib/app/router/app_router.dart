@@ -23,6 +23,8 @@ import 'package:ondas_web/features/dashboard/presentation/screens/dashboard_scre
 import 'package:ondas_web/features/albums/presentation/bloc/album_bloc.dart';
 import 'package:ondas_web/features/albums/presentation/screens/album_form_screen.dart';
 import 'package:ondas_web/features/albums/presentation/screens/albums_screen.dart';
+import 'package:ondas_web/features/users/presentation/bloc/admin_user_bloc.dart';
+import 'package:ondas_web/features/users/presentation/screens/admin_users_screen.dart';
 
 GoRouter createRouter() {
   return GoRouter(
@@ -161,6 +163,14 @@ GoRouter createRouter() {
               ),
             ],
           ),
+          GoRoute(
+            path: AppConstants.routeUsers,
+            name: 'users',
+            builder: (context, state) => BlocProvider(
+              create: (_) => sl<AdminUserBloc>(),
+              child: const AdminUsersScreen(),
+            ),
+          ),
         ],
       ),
     ],
@@ -170,11 +180,18 @@ GoRouter createRouter() {
 
 Future<String?> _guard(BuildContext context, GoRouterState state) async {
   final token = await sl<SecureStorage>().getAccessToken();
+  final role = await sl<SecureStorage>().getUserRole();
   final isLoggedIn = token != null && token.isNotEmpty;
   final isOnLogin = state.matchedLocation == AppConstants.routeLogin;
+  final isUsersRoute = state.matchedLocation.startsWith(
+    AppConstants.routeUsers,
+  );
 
   if (!isLoggedIn && !isOnLogin) return AppConstants.routeLogin;
   if (isLoggedIn && isOnLogin) return AppConstants.routeDashboard;
+  if (isUsersRoute && role != AppConstants.roleAdmin) {
+    return AppConstants.routeDashboard;
+  }
   return null;
 }
 

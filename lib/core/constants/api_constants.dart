@@ -29,4 +29,15 @@ abstract class ApiConstants {
   static const String genres = '/api/genres';
   static const String genresSearch = '/api/genres/search';
   static String genreById(int id) => '/api/genres/$id';
+
+  // Admin users
+  static const String adminUsers = '/api/admin/users';
+  static String adminUserById(String id) => '/api/admin/users/$id';
+  static String adminUserBan(String id) => '/api/admin/users/$id/ban';
+  static String adminUserUnban(String id) => '/api/admin/users/$id/unban';
+
+  // Lyrics
+  static String songLyrics(String songId) => '/api/songs/$songId/lyrics';
+  static String songLyricsStatic(String songId) =>
+      '/api/songs/$songId/lyrics/static';
 }

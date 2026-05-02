@@ -20,10 +20,17 @@ class SongFormWidget extends StatefulWidget {
   final bool isLoading;
   final bool optionsLoading;
   final String? optionsError;
+  final String? lyricsText;
+  final bool lyricsLoading;
+  final bool lyricsSaving;
+  final String? lyricsError;
+  final bool lyricsEnabled;
   final List<SongFormOption<String>> artistOptions;
   final List<SongFormOption<int>> genreOptions;
   final List<SongFormOption<String>> albumOptions;
   final Future<void> Function()? onReloadOptions;
+  final Future<void> Function()? onReloadLyrics;
+  final Future<void> Function(String text)? onSaveLyrics;
   final void Function({
     required String title,
     String? albumId,
@@ -36,7 +43,8 @@ class SongFormWidget extends StatefulWidget {
     List<int>? coverBytes,
     String? coverFileName,
     bool? active,
-  }) onSubmit;
+  })
+  onSubmit;
 
   const SongFormWidget({
     super.key,
@@ -44,10 +52,17 @@ class SongFormWidget extends StatefulWidget {
     required this.isLoading,
     required this.optionsLoading,
     required this.optionsError,
+    required this.lyricsText,
+    required this.lyricsLoading,
+    required this.lyricsSaving,
+    required this.lyricsError,
+    required this.lyricsEnabled,
     required this.artistOptions,
     required this.genreOptions,
     required this.albumOptions,
     this.onReloadOptions,
+    this.onReloadLyrics,
+    this.onSaveLyrics,
     required this.onSubmit,
   });
 
@@ -59,6 +74,7 @@ class _SongFormWidgetState extends State<SongFormWidget> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleCtrl;
   late final TextEditingController _trackNumberCtrl;
+  late final TextEditingController _lyricsCtrl;
   DateTime? _selectedReleaseDate;
 
   List<int>? _audioBytes;
@@ -82,6 +98,7 @@ class _SongFormWidgetState extends State<SongFormWidget> {
     _trackNumberCtrl = TextEditingController(
       text: song?.trackNumber == null ? '' : '${song!.trackNumber}',
     );
+    _lyricsCtrl = TextEditingController(text: widget.lyricsText ?? '');
     // Parse ngày phát hành từ string 'yyyy-MM-dd'
     if (song?.releaseDate != null && song!.releaseDate!.isNotEmpty) {
       try {
@@ -96,9 +113,7 @@ class _SongFormWidgetState extends State<SongFormWidget> {
       }
     }
     _selectedAlbumId = song?.albumId;
-    _selectedArtistIds = song == null
-        ? <String>{}
-        : song.artistIds.toSet();
+    _selectedArtistIds = song == null ? <String>{} : song.artistIds.toSet();
     _selectedGenreIds = song == null ? <int>{} : song.genreIds.toSet();
     _active = song?.active ?? true;
   }
@@ -107,7 +122,17 @@ class _SongFormWidgetState extends State<SongFormWidget> {
   void dispose() {
     _titleCtrl.dispose();
     _trackNumberCtrl.dispose();
+    _lyricsCtrl.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant SongFormWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.lyricsText != widget.lyricsText &&
+        (widget.lyricsText ?? '') != _lyricsCtrl.text) {
+      _lyricsCtrl.text = widget.lyricsText ?? '';
+    }
   }
 
   void _pickAudio() {
@@ -217,12 +242,14 @@ class _SongFormWidgetState extends State<SongFormWidget> {
     widget.onSubmit(
       title: _titleCtrl.text.trim(),
       albumId: _selectedAlbumId,
-      trackNumber: trackNumberText.isEmpty ? null : int.tryParse(trackNumberText),
+      trackNumber: trackNumberText.isEmpty
+          ? null
+          : int.tryParse(trackNumberText),
       releaseDate: _selectedReleaseDate == null
           ? null
           : '${_selectedReleaseDate!.year.toString().padLeft(4, '0')}-'
-            '${_selectedReleaseDate!.month.toString().padLeft(2, '0')}-'
-            '${_selectedReleaseDate!.day.toString().padLeft(2, '0')}',
+                '${_selectedReleaseDate!.month.toString().padLeft(2, '0')}-'
+                '${_selectedReleaseDate!.day.toString().padLeft(2, '0')}',
       artistIds: _selectedArtistIds.toList(),
       genreIds: _selectedGenreIds.toList(),
       audioBytes: _audioBytes ?? const <int>[],
@@ -236,8 +263,12 @@ class _SongFormWidgetState extends State<SongFormWidget> {
   @override
   Widget build(BuildContext context) {
     final isLight = Theme.of(context).brightness == Brightness.light;
-    final textPrimary = isLight ? AppColors.nearBlack : AppColors.darkTextPrimary;
-    final textSecondary = isLight ? AppColors.stone : AppColors.darkTextSecondary;
+    final textPrimary = isLight
+        ? AppColors.nearBlack
+        : AppColors.darkTextPrimary;
+    final textSecondary = isLight
+        ? AppColors.stone
+        : AppColors.darkTextSecondary;
     final borderColor = isLight ? AppColors.borderLight : AppColors.darkBorder;
     final bgCard = isLight ? AppColors.snow : AppColors.darkSurface;
 
@@ -257,15 +288,18 @@ class _SongFormWidgetState extends State<SongFormWidget> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline, size: 18, color: AppColors.errorLight),
+                  const Icon(
+                    Icons.error_outline,
+                    size: 18,
+                    color: AppColors.errorLight,
+                  ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       widget.optionsError!,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AppColors.errorLight),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.errorLight,
+                      ),
                     ),
                   ),
                   TextButton(
@@ -306,7 +340,8 @@ class _SongFormWidgetState extends State<SongFormWidget> {
                     artistOptions: widget.artistOptions,
                     genreOptions: widget.genreOptions,
                     optionsLoading: widget.optionsLoading,
-                    onAlbumChanged: (value) => setState(() => _selectedAlbumId = value),
+                    onAlbumChanged: (value) =>
+                        setState(() => _selectedAlbumId = value),
                     onPickArtists: _pickArtists,
                     onPickGenres: _pickGenres,
                     active: _active,
@@ -340,12 +375,28 @@ class _SongFormWidgetState extends State<SongFormWidget> {
             ),
           ),
           const SizedBox(height: AppSpacing.xxl),
+          _LyricsCard(
+            controller: _lyricsCtrl,
+            enabled: widget.lyricsEnabled,
+            isLoading: widget.lyricsLoading,
+            isSaving: widget.lyricsSaving,
+            errorText: widget.lyricsError,
+            onReload: widget.onReloadLyrics,
+            onSave: widget.onSaveLyrics,
+            borderColor: borderColor,
+            bgCard: bgCard,
+            textPrimary: textPrimary,
+            textSecondary: textSecondary,
+          ),
+          const SizedBox(height: AppSpacing.xxl),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               OutlinedButton(
                 key: const Key('songForm_backButton'),
-                onPressed: widget.isLoading ? null : () => Navigator.of(context).pop(),
+                onPressed: widget.isLoading
+                    ? null
+                    : () => Navigator.of(context).pop(),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: textSecondary,
                   side: BorderSide(color: borderColor),
@@ -360,7 +411,9 @@ class _SongFormWidgetState extends State<SongFormWidget> {
               const SizedBox(width: AppSpacing.md),
               ElevatedButton(
                 key: const Key('songForm_submitButton'),
-                onPressed: (widget.isLoading || widget.optionsLoading) ? null : _submit,
+                onPressed: (widget.isLoading || widget.optionsLoading)
+                    ? null
+                    : _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.nearBlack,
                   foregroundColor: AppColors.pureWhite,
@@ -457,9 +510,9 @@ class _FieldsCard extends StatelessWidget {
               Text(
                 'Thông tin bài hát',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               if (optionsLoading) ...[
                 const SizedBox(width: AppSpacing.md),
@@ -525,7 +578,9 @@ class _FieldsCard extends StatelessWidget {
                   validator: (v) {
                     final text = (v ?? '').trim();
                     if (text.isEmpty) return null;
-                    return int.tryParse(text) == null ? 'Phải là số nguyên' : null;
+                    return int.tryParse(text) == null
+                        ? 'Phải là số nguyên'
+                        : null;
                   },
                 ),
               ),
@@ -536,7 +591,10 @@ class _FieldsCard extends StatelessWidget {
                   children: [
                     const Text(
                       'Ngày phát hành',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     InkWell(
@@ -549,7 +607,9 @@ class _FieldsCard extends StatelessWidget {
                           vertical: AppSpacing.smMd,
                         ),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(AppRadius.container),
+                          borderRadius: BorderRadius.circular(
+                            AppRadius.container,
+                          ),
                           border: Border.all(color: borderColor),
                         ),
                         child: Row(
@@ -559,8 +619,8 @@ class _FieldsCard extends StatelessWidget {
                                 selectedReleaseDate == null
                                     ? 'Chọn ngày...'
                                     : '${selectedReleaseDate!.day.toString().padLeft(2, '0')}/'
-                                      '${selectedReleaseDate!.month.toString().padLeft(2, '0')}/'
-                                      '${selectedReleaseDate!.year}',
+                                          '${selectedReleaseDate!.month.toString().padLeft(2, '0')}/'
+                                          '${selectedReleaseDate!.year}',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: selectedReleaseDate == null
@@ -620,10 +680,9 @@ class _FieldsCard extends StatelessWidget {
               if (!isEditing)
                 Text(
                   '(Chỉ sửa khi edit)',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: textSecondary),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: textSecondary),
                 ),
             ],
           ),
@@ -679,7 +738,10 @@ class _MultiSelectField<T> extends StatelessWidget {
               border: Border.all(color: borderColor),
             ),
             child: selectedLabels.isEmpty
-                ? Text(hintText, style: TextStyle(color: textColor.withValues(alpha: 0.5)))
+                ? Text(
+                    hintText,
+                    style: TextStyle(color: textColor.withValues(alpha: 0.5)),
+                  )
                 : Wrap(
                     spacing: AppSpacing.xs,
                     runSpacing: AppSpacing.xs,
@@ -692,7 +754,9 @@ class _MultiSelectField<T> extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.infoSurfaceLight,
-                              borderRadius: BorderRadius.circular(AppRadius.pill),
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.pill,
+                              ),
                             ),
                             child: Text(
                               label,
@@ -831,9 +895,9 @@ class _MediaCard extends StatelessWidget {
           Text(
             'Media',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: AppSpacing.lg),
           Center(
@@ -869,10 +933,9 @@ class _MediaCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             Text(
               coverFileName!,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: textSecondary),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: textSecondary),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -894,10 +957,9 @@ class _MediaCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             Text(
               audioFileName!,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: textSecondary),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: textSecondary),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -906,22 +968,191 @@ class _MediaCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             Text(
               'Bắt buộc khi tạo mới',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: AppColors.errorLight),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.errorLight),
               textAlign: TextAlign.center,
             ),
           ],
           const Spacer(),
           Text(
             'Nguồn dữ liệu artist, genre, album được tải từ API.',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: textSecondary, fontSize: 11),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: textSecondary, fontSize: 11),
             textAlign: TextAlign.center,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LyricsCard extends StatelessWidget {
+  final TextEditingController controller;
+  final bool enabled;
+  final bool isLoading;
+  final bool isSaving;
+  final String? errorText;
+  final Future<void> Function()? onReload;
+  final Future<void> Function(String text)? onSave;
+  final Color borderColor;
+  final Color bgCard;
+  final Color textPrimary;
+  final Color textSecondary;
+
+  const _LyricsCard({
+    required this.controller,
+    required this.enabled,
+    required this.isLoading,
+    required this.isSaving,
+    required this.errorText,
+    required this.onReload,
+    required this.onSave,
+    required this.borderColor,
+    required this.bgCard,
+    required this.textPrimary,
+    required this.textSecondary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: bgCard,
+        borderRadius: BorderRadius.circular(AppRadius.container),
+        border: Border.all(color: borderColor),
+      ),
+      padding: const EdgeInsets.all(AppSpacing.xxl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Lời bài hát',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (isLoading) ...[
+                const SizedBox(width: AppSpacing.md),
+                const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          if (!enabled)
+            Text(
+              'Vui lòng lưu bài hát trước khi cập nhật lời bài hát.',
+              style: TextStyle(color: textSecondary),
+            )
+          else ...[
+            if (errorText != null)
+              Container(
+                margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.errorSurfaceLight,
+                  borderRadius: BorderRadius.circular(AppRadius.container),
+                  border: Border.all(color: AppColors.errorLight),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 18,
+                      color: AppColors.errorLight,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        errorText!,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.errorLight,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: onReload,
+                      child: const Text('Thử lại'),
+                    ),
+                  ],
+                ),
+              ),
+            TextField(
+              key: const Key('songForm_lyricsField'),
+              controller: controller,
+              minLines: 7,
+              maxLines: 14,
+              style: TextStyle(color: textPrimary, height: 1.4),
+              decoration: InputDecoration(
+                hintText: 'Nhập lời bài hát...',
+                hintStyle: TextStyle(
+                  color: textPrimary.withValues(alpha: 0.45),
+                ),
+                filled: true,
+                fillColor: bgCard,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.lg,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.container),
+                  borderSide: BorderSide(color: borderColor),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.container),
+                  borderSide: BorderSide(color: borderColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.container),
+                  borderSide: const BorderSide(
+                    color: AppColors.nearBlack,
+                    width: 1.3,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Nếu muốn xóa lời bài hát, hãy xóa hết nội dung và bấm Lưu lời bài hát.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: textSecondary),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                key: const Key('songForm_saveLyricsButton'),
+                onPressed: (isSaving || onSave == null)
+                    ? null
+                    : () => onSave!(controller.text),
+                icon: isSaving
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.pureWhite,
+                        ),
+                      )
+                    : const Icon(Icons.save_outlined, size: 16),
+                label: const Text('Lưu lời bài hát'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.nearBlack,
+                  foregroundColor: AppColors.pureWhite,
+                  shape: const StadiumBorder(),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -974,7 +1205,10 @@ class _FormField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.container),
-              borderSide: const BorderSide(color: AppColors.nearBlack, width: 1.3),
+              borderSide: const BorderSide(
+                color: AppColors.nearBlack,
+                width: 1.3,
+              ),
             ),
           ),
         ),

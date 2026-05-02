@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ondas_web/core/constants/app_constants.dart';
+import 'package:ondas_web/core/di/injection.dart';
+import 'package:ondas_web/core/storage/secure_storage.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
@@ -61,26 +63,38 @@ class AdminSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 220,
-      decoration: const BoxDecoration(
-        color: AppColors.darkestSurface,
-        border: Border(right: BorderSide(color: AppColors.darkBorder)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _SidebarLogo(),
-          const Divider(color: AppColors.darkBorder, height: 1),
-          const SizedBox(height: AppSpacing.sm),
-          ...kAdminNavItems.map(
-            (item) => _SidebarNavItem(
-              item: item,
-              isActive: currentRoute.startsWith(item.route),
-            ),
+    return FutureBuilder<String?>(
+      future: sl<SecureStorage>().getUserRole(),
+      builder: (context, snapshot) {
+        final role = snapshot.data;
+        final items = role == AppConstants.roleAdmin
+            ? kAdminNavItems
+            : kAdminNavItems
+                  .where((item) => item.route != AppConstants.routeUsers)
+                  .toList();
+
+        return Container(
+          width: 220,
+          decoration: const BoxDecoration(
+            color: AppColors.darkestSurface,
+            border: Border(right: BorderSide(color: AppColors.darkBorder)),
           ),
-        ],
-      ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _SidebarLogo(),
+              const Divider(color: AppColors.darkBorder, height: 1),
+              const SizedBox(height: AppSpacing.sm),
+              ...items.map(
+                (item) => _SidebarNavItem(
+                  item: item,
+                  isActive: currentRoute.startsWith(item.route),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -97,14 +111,18 @@ class _SidebarLogo extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.graphic_eq, color: AppColors.darkTextPrimary, size: 22),
+          const Icon(
+            Icons.graphic_eq,
+            color: AppColors.darkTextPrimary,
+            size: 22,
+          ),
           const SizedBox(width: AppSpacing.sm),
           Text(
             'Ondas Admin',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.darkTextPrimary,
-                  fontWeight: FontWeight.w500,
-                ),
+              color: AppColors.darkTextPrimary,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -120,8 +138,12 @@ class _SidebarNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = isActive ? AppColors.darkTextPrimary : AppColors.darkTextMuted;
-    final bgColor = isActive ? AppColors.darkSurfaceElevated : Colors.transparent;
+    final textColor = isActive
+        ? AppColors.darkTextPrimary
+        : AppColors.darkTextMuted;
+    final bgColor = isActive
+        ? AppColors.darkSurfaceElevated
+        : Colors.transparent;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -147,9 +169,9 @@ class _SidebarNavItem extends StatelessWidget {
               const SizedBox(width: AppSpacing.md),
               Text(
                 item.label,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: textColor,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: textColor),
               ),
             ],
           ),
