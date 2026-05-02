@@ -74,6 +74,19 @@ import 'package:ondas_web/features/albums/domain/usecases/get_albums_usecase_imp
 import 'package:ondas_web/features/albums/domain/usecases/update_album_usecase.dart';
 import 'package:ondas_web/features/albums/domain/usecases/update_album_usecase_impl.dart';
 import 'package:ondas_web/features/albums/presentation/bloc/album_bloc.dart';
+import 'package:ondas_web/features/users/data/datasources/admin_user_remote_datasource.dart';
+import 'package:ondas_web/features/users/data/datasources/admin_user_remote_datasource_impl.dart';
+import 'package:ondas_web/features/users/data/repositories/admin_user_repository_impl.dart';
+import 'package:ondas_web/features/users/domain/repositories/admin_user_repository.dart';
+import 'package:ondas_web/features/users/domain/usecases/ban_admin_user_usecase.dart';
+import 'package:ondas_web/features/users/domain/usecases/ban_admin_user_usecase_impl.dart';
+import 'package:ondas_web/features/users/domain/usecases/get_admin_user_usecase.dart';
+import 'package:ondas_web/features/users/domain/usecases/get_admin_user_usecase_impl.dart';
+import 'package:ondas_web/features/users/domain/usecases/get_admin_users_usecase.dart';
+import 'package:ondas_web/features/users/domain/usecases/get_admin_users_usecase_impl.dart';
+import 'package:ondas_web/features/users/domain/usecases/unban_admin_user_usecase.dart';
+import 'package:ondas_web/features/users/domain/usecases/unban_admin_user_usecase_impl.dart';
+import 'package:ondas_web/features/users/presentation/bloc/admin_user_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -241,6 +254,34 @@ Future<void> setupDependencies() async {
       updateAlbumUseCase: sl<UpdateAlbumUseCase>(),
       deleteAlbumUseCase: sl<DeleteAlbumUseCase>(),
       updateSongUseCase: sl<UpdateSongUseCase>(),
+    ),
+  );
+
+  // ── Admin Users Feature ───────────────────────────────────────────────────
+  sl.registerLazySingleton<AdminUserRemoteDataSource>(
+    () => AdminUserRemoteDataSourceImpl(sl<DioClient>()),
+  );
+  sl.registerLazySingleton<AdminUserRepository>(
+    () => AdminUserRepositoryImpl(sl<AdminUserRemoteDataSource>()),
+  );
+  sl.registerLazySingleton<GetAdminUsersUseCase>(
+    () => GetAdminUsersUseCaseImpl(sl<AdminUserRepository>()),
+  );
+  sl.registerLazySingleton<GetAdminUserUseCase>(
+    () => GetAdminUserUseCaseImpl(sl<AdminUserRepository>()),
+  );
+  sl.registerLazySingleton<BanAdminUserUseCase>(
+    () => BanAdminUserUseCaseImpl(sl<AdminUserRepository>()),
+  );
+  sl.registerLazySingleton<UnbanAdminUserUseCase>(
+    () => UnbanAdminUserUseCaseImpl(sl<AdminUserRepository>()),
+  );
+  sl.registerFactory<AdminUserBloc>(
+    () => AdminUserBloc(
+      getAdminUsersUseCase: sl<GetAdminUsersUseCase>(),
+      getAdminUserUseCase: sl<GetAdminUserUseCase>(),
+      banAdminUserUseCase: sl<BanAdminUserUseCase>(),
+      unbanAdminUserUseCase: sl<UnbanAdminUserUseCase>(),
     ),
   );
 }
