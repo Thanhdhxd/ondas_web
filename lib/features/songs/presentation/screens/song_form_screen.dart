@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -62,22 +63,102 @@ class _SongFormScreenState extends State<SongFormScreen> {
       final response = await sl<DioClient>().dio.get(
         ApiConstants.songLyrics(_songId!),
       );
-      final body = response.data as Map<String, dynamic>;
-      if (body['success'] != true) {
-        throw Exception(body['message'] as String? ?? 'Khong the tai lyrics');
+      if (response.data == null) {
+        if (!mounted) return;
+        setState(() {
+          _lyricsText = '';
+          _lyricsLoading = false;
+          _lyricsError = null;
+        });
+        return;
       }
-      final data = body['data'] as Map<String, dynamic>?;
-      final lyrics = data?['plainText'] as String?;
+
+      final body = response.data as Map<String, dynamic>;
+      final data = body['data'];
+      final lyrics = data is Map<String, dynamic>
+          ? data['plainText'] as String?
+          : null;
+      if (body['success'] != true) {
+        if (lyrics == null) {
+          if (!mounted) return;
+          setState(() {
+            _lyricsText = '';
+            _lyricsLoading = false;
+            _lyricsError = null;
+          });
+          return;
+        }
+        throw Exception(body['message'] as String? ?? 'Không thể tải lyrics');
+      }
       if (!mounted) return;
       setState(() {
         _lyricsText = lyrics ?? '';
         _lyricsLoading = false;
+        _lyricsError = null;
       });
     } catch (error) {
       if (!mounted) return;
+      if (error is DioException) {
+        final statusCode = error.response?.statusCode;
+        if (statusCode == 404 || statusCode == 204) {
+          setState(() {
+            _lyricsText = '';
+            _lyricsLoading = false;
+            _lyricsError = null;
+          });
+          return;
+        }
+        if (error.response?.data == null) {
+          setState(() {
+            _lyricsText = '';
+            _lyricsLoading = false;
+            _lyricsError = null;
+          });
+          return;
+        }
+        final responseData = error.response?.data;
+        if (responseData is Map<String, dynamic>) {
+          final message = responseData['message']?.toString() ?? '';
+          final success = responseData['success'];
+          final data = responseData['data'];
+          if (success == false && data == null) {
+            setState(() {
+              _lyricsText = '';
+              _lyricsLoading = false;
+              _lyricsError = null;
+            });
+            return;
+          }
+          if (message.contains('Lyrics not found')) {
+            setState(() {
+              _lyricsText = '';
+              _lyricsLoading = false;
+              _lyricsError = null;
+            });
+            return;
+          }
+        }
+        final responseText = responseData?.toString() ?? '';
+        if (responseText.contains('Lyrics not found')) {
+          setState(() {
+            _lyricsText = '';
+            _lyricsLoading = false;
+            _lyricsError = null;
+          });
+          return;
+        }
+      }
+      if (error is TypeError) {
+        setState(() {
+          _lyricsText = '';
+          _lyricsLoading = false;
+          _lyricsError = null;
+        });
+        return;
+      }
       setState(() {
         _lyricsLoading = false;
-        _lyricsError = 'Khong the tai lyrics';
+        _lyricsError = 'Không thể tải lyrics';
       });
     }
   }
@@ -96,7 +177,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
         );
         final body = response.data as Map<String, dynamic>;
         if (body['success'] != true) {
-          throw Exception(body['message'] as String? ?? 'Khong the xoa lyrics');
+          throw Exception(body['message'] as String? ?? 'Không thể xóa lyrics');
         }
       } else {
         final response = await sl<DioClient>().dio.put(
@@ -105,7 +186,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
         );
         final body = response.data as Map<String, dynamic>;
         if (body['success'] != true) {
-          throw Exception(body['message'] as String? ?? 'Khong the luu lyrics');
+          throw Exception(body['message'] as String? ?? 'Không thể lưu lyrics');
         }
       }
 
@@ -118,7 +199,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            trimmed.isEmpty ? 'Lyrics da duoc xoa.' : 'Lyrics da duoc luu.',
+            trimmed.isEmpty ? 'Lyrics đã được xóa.' : 'Lyrics đã được lưu.',
           ),
           backgroundColor: AppColors.successLight,
         ),
@@ -127,11 +208,11 @@ class _SongFormScreenState extends State<SongFormScreen> {
       if (!mounted) return;
       setState(() {
         _lyricsSaving = false;
-        _lyricsError = 'Khong the luu lyrics';
+        _lyricsError = 'Không thể lưu lyrics';
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Khong the luu lyrics.'),
+          content: Text('Không thể lưu lyrics.'),
           backgroundColor: AppColors.errorLight,
         ),
       );
@@ -200,7 +281,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
       );
       final body = response.data as Map<String, dynamic>;
       if (body['success'] != true) {
-        onError(body['message'] as String? ?? 'Khong the tai danh sach albums');
+        onError(body['message'] as String? ?? 'Không thể tải danh sách albums');
         return const <SongFormOption<String>>[];
       }
 
@@ -217,7 +298,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
           .where((item) => item.value.isNotEmpty)
           .toList();
     } catch (_) {
-      onError('Khong the tai danh sach albums');
+      onError('Không thể tải danh sách albums');
       return const <SongFormOption<String>>[];
     }
   }
