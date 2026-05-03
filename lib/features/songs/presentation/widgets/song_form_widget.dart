@@ -271,6 +271,11 @@ class _SongFormWidgetState extends State<SongFormWidget> {
         : AppColors.darkTextSecondary;
     final borderColor = isLight ? AppColors.borderLight : AppColors.darkBorder;
     final bgCard = isLight ? AppColors.snow : AppColors.darkSurface;
+    final showEmptyLyricsHint =
+        widget.lyricsEnabled &&
+        !widget.lyricsLoading &&
+        widget.lyricsError == null &&
+        _lyricsCtrl.text.trim().isEmpty;
 
     return Form(
       key: _formKey,
@@ -381,6 +386,7 @@ class _SongFormWidgetState extends State<SongFormWidget> {
             isLoading: widget.lyricsLoading,
             isSaving: widget.lyricsSaving,
             errorText: widget.lyricsError,
+            showEmptyHint: showEmptyLyricsHint,
             onReload: widget.onReloadLyrics,
             onSave: widget.onSaveLyrics,
             borderColor: borderColor,
@@ -542,7 +548,7 @@ class _FieldsCard extends StatelessWidget {
             items: [
               const DropdownMenuItem<String?>(
                 value: null,
-                child: Text('Khong gan album'),
+                child: Text('Không gán album'),
               ),
               ...albumOptions.map(
                 (option) => DropdownMenuItem<String?>(
@@ -994,6 +1000,7 @@ class _LyricsCard extends StatelessWidget {
   final bool isLoading;
   final bool isSaving;
   final String? errorText;
+  final bool showEmptyHint;
   final Future<void> Function()? onReload;
   final Future<void> Function(String text)? onSave;
   final Color borderColor;
@@ -1007,6 +1014,7 @@ class _LyricsCard extends StatelessWidget {
     required this.isLoading,
     required this.isSaving,
     required this.errorText,
+    required this.showEmptyHint,
     required this.onReload,
     required this.onSave,
     required this.borderColor,
@@ -1085,6 +1093,15 @@ class _LyricsCard extends StatelessWidget {
                   ],
                 ),
               ),
+            if (showEmptyHint) ...[
+              Text(
+                'Bài hát chưa có lyric, thêm lyric ở dưới.',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: textSecondary),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
             TextField(
               key: const Key('songForm_lyricsField'),
               controller: controller,
