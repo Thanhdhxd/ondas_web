@@ -24,6 +24,7 @@ abstract class SongRepository {
     required String audioFileName,
     List<int>? coverBytes,
     String? coverFileName,
+    String? lyrics,
   });
 
   Future<Either<Failure, Song>> updateSong({

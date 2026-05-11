@@ -87,6 +87,19 @@ import 'package:ondas_web/features/users/domain/usecases/get_admin_users_usecase
 import 'package:ondas_web/features/users/domain/usecases/unban_admin_user_usecase.dart';
 import 'package:ondas_web/features/users/domain/usecases/unban_admin_user_usecase_impl.dart';
 import 'package:ondas_web/features/users/presentation/bloc/admin_user_bloc.dart';
+import 'package:ondas_web/features/lyrics/data/datasources/lyrics_remote_datasource.dart';
+import 'package:ondas_web/features/lyrics/data/datasources/lyrics_remote_datasource_impl.dart';
+import 'package:ondas_web/features/lyrics/data/repositories/lyrics_repository_impl.dart';
+import 'package:ondas_web/features/lyrics/domain/repositories/lyrics_repository.dart';
+import 'package:ondas_web/features/lyrics/domain/usecases/create_song_lyrics_usecase.dart';
+import 'package:ondas_web/features/lyrics/domain/usecases/create_song_lyrics_usecase_impl.dart';
+import 'package:ondas_web/features/lyrics/domain/usecases/delete_song_lyrics_usecase.dart';
+import 'package:ondas_web/features/lyrics/domain/usecases/delete_song_lyrics_usecase_impl.dart';
+import 'package:ondas_web/features/lyrics/domain/usecases/get_song_lyrics_usecase.dart';
+import 'package:ondas_web/features/lyrics/domain/usecases/get_song_lyrics_usecase_impl.dart';
+import 'package:ondas_web/features/lyrics/domain/usecases/update_song_lyrics_usecase.dart';
+import 'package:ondas_web/features/lyrics/domain/usecases/update_song_lyrics_usecase_impl.dart';
+import 'package:ondas_web/features/lyrics/presentation/bloc/lyrics_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -282,6 +295,34 @@ Future<void> setupDependencies() async {
       getAdminUserUseCase: sl<GetAdminUserUseCase>(),
       banAdminUserUseCase: sl<BanAdminUserUseCase>(),
       unbanAdminUserUseCase: sl<UnbanAdminUserUseCase>(),
+    ),
+  );
+
+  // ── Lyrics Feature ─────────────────────────────────────────────────────────
+  sl.registerLazySingleton<LyricsRemoteDataSource>(
+    () => LyricsRemoteDataSourceImpl(sl<DioClient>()),
+  );
+  sl.registerLazySingleton<LyricsRepository>(
+    () => LyricsRepositoryImpl(sl<LyricsRemoteDataSource>()),
+  );
+  sl.registerLazySingleton<GetSongLyricsUseCase>(
+    () => GetSongLyricsUseCaseImpl(sl<LyricsRepository>()),
+  );
+  sl.registerLazySingleton<CreateSongLyricsUseCase>(
+    () => CreateSongLyricsUseCaseImpl(sl<LyricsRepository>()),
+  );
+  sl.registerLazySingleton<UpdateSongLyricsUseCase>(
+    () => UpdateSongLyricsUseCaseImpl(sl<LyricsRepository>()),
+  );
+  sl.registerLazySingleton<DeleteSongLyricsUseCase>(
+    () => DeleteSongLyricsUseCaseImpl(sl<LyricsRepository>()),
+  );
+  sl.registerFactory<LyricsBloc>(
+    () => LyricsBloc(
+      getSongLyricsUseCase: sl<GetSongLyricsUseCase>(),
+      createSongLyricsUseCase: sl<CreateSongLyricsUseCase>(),
+      updateSongLyricsUseCase: sl<UpdateSongLyricsUseCase>(),
+      deleteSongLyricsUseCase: sl<DeleteSongLyricsUseCase>(),
     ),
   );
 }

@@ -53,6 +53,7 @@ class SongRepositoryImpl implements SongRepository {
     required String audioFileName,
     List<int>? coverBytes,
     String? coverFileName,
+    String? lyrics,
   }) async {
     try {
       final result = await _dataSource.createSong(
@@ -66,6 +67,7 @@ class SongRepositoryImpl implements SongRepository {
         audioFileName: audioFileName,
         coverBytes: coverBytes,
         coverFileName: coverFileName,
+        lyrics: lyrics,
       );
       return Right(result);
     } on ServerException catch (e) {

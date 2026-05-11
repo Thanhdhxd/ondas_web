@@ -84,13 +84,15 @@ class SongBloc extends Bloc<SongEvent, SongState> {
         audioFileName: event.audioFileName,
         coverBytes: event.coverBytes,
         coverFileName: event.coverFileName,
+        lyrics: event.lyrics,
       ),
     );
     result.fold(
       (failure) => emit(SongOperationError(message: failure.message)),
-      (_) => emit(
-        const SongOperationSuccess(
+      (song) => emit(
+        SongOperationSuccess(
           message: 'Bai hat da duoc tao thanh cong.',
+          song: song,
         ),
       ),
     );

@@ -81,6 +81,7 @@ class SongRemoteDataSourceImpl implements SongRemoteDataSource {
     required String audioFileName,
     List<int>? coverBytes,
     String? coverFileName,
+    String? lyrics,
   }) async {
     try {
       final data = _buildFormData(
@@ -91,6 +92,7 @@ class SongRemoteDataSourceImpl implements SongRemoteDataSource {
           if (releaseDate != null) 'releaseDate': releaseDate,
           'artistIds': artistIds,
           'genreIds': genreIds,
+          if (lyrics != null && lyrics.isNotEmpty) 'lyrics': lyrics,
         },
         audioBytes: audioBytes,
         audioFileName: audioFileName,

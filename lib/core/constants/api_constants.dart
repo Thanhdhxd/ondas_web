@@ -38,6 +38,4 @@ abstract class ApiConstants {
 
   // Lyrics
   static String songLyrics(String songId) => '/api/songs/$songId/lyrics';
-  static String songLyricsStatic(String songId) =>
-      '/api/songs/$songId/lyrics/static';
 }

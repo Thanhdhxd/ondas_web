@@ -363,8 +363,8 @@ class _RecentSongsTable extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          SizedBox(
+            width: double.infinity,
             child: DataTable(
               headingRowHeight: 40,
               dataRowMinHeight: 48,
