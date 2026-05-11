@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -7,8 +6,14 @@ import 'package:ondas_web/core/di/injection.dart';
 import 'package:ondas_web/core/network/dio_client.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
+import 'package:ondas_web/core/utils/audio_metadata_parser.dart';
 import 'package:ondas_web/features/artists/domain/usecases/get_artists_usecase.dart';
 import 'package:ondas_web/features/genres/domain/usecases/get_genres_usecase.dart';
+import 'package:ondas_web/features/lyrics/domain/entities/lyrics.dart';
+import 'package:ondas_web/features/lyrics/presentation/bloc/lyrics_bloc.dart';
+import 'package:ondas_web/features/lyrics/presentation/bloc/lyrics_event.dart';
+import 'package:ondas_web/features/lyrics/presentation/bloc/lyrics_state.dart';
+import 'package:ondas_web/features/lyrics/presentation/widgets/lyrics_form_widget.dart';
 import 'package:ondas_web/features/songs/domain/entities/song.dart';
 import 'package:ondas_web/features/songs/presentation/bloc/song_bloc.dart';
 import 'package:ondas_web/features/songs/presentation/bloc/song_event.dart';
@@ -26,15 +31,21 @@ class SongFormScreen extends StatefulWidget {
 }
 
 class _SongFormScreenState extends State<SongFormScreen> {
+  final _lyricsFormKey = GlobalKey<LyricsFormWidgetState>();
+
   bool _isOptionsLoading = true;
   String? _optionsError;
   List<SongFormOption<String>> _artistOptions = const [];
   List<SongFormOption<int>> _genreOptions = const [];
   List<SongFormOption<String>> _albumOptions = const [];
-  bool _lyricsLoading = false;
-  bool _lyricsSaving = false;
-  String? _lyricsText;
-  String? _lyricsError;
+
+  /// Current lyrics data, if any, for the form widget.
+  Lyrics? _currentLyrics;
+  List<SyncedLyricsLineDraft>? _prefilledSyncedLines;
+  String? _prefilledPlainText;
+  LyricsDraft? _pendingLyricsDraft;
+  bool _awaitingLyricsCreate = false;
+  String? _pendingSongSuccessMessage;
 
   String? get _songId {
     final id = widget.songId?.trim();
@@ -52,170 +63,31 @@ class _SongFormScreenState extends State<SongFormScreen> {
     _loadOptions();
   }
 
-  Future<void> _loadLyrics() async {
+  void _loadLyrics() {
     if (_songId == null) return;
-    setState(() {
-      _lyricsLoading = true;
-      _lyricsError = null;
-    });
-
-    try {
-      final response = await sl<DioClient>().dio.get(
-        ApiConstants.songLyrics(_songId!),
-      );
-      if (response.data == null) {
-        if (!mounted) return;
-        setState(() {
-          _lyricsText = '';
-          _lyricsLoading = false;
-          _lyricsError = null;
-        });
-        return;
-      }
-
-      final body = response.data as Map<String, dynamic>;
-      final data = body['data'];
-      final lyrics = data is Map<String, dynamic>
-          ? data['plainText'] as String?
-          : null;
-      if (body['success'] != true) {
-        if (lyrics == null) {
-          if (!mounted) return;
-          setState(() {
-            _lyricsText = '';
-            _lyricsLoading = false;
-            _lyricsError = null;
-          });
-          return;
-        }
-        throw Exception(body['message'] as String? ?? 'Không thể tải lyrics');
-      }
-      if (!mounted) return;
-      setState(() {
-        _lyricsText = lyrics ?? '';
-        _lyricsLoading = false;
-        _lyricsError = null;
-      });
-    } catch (error) {
-      if (!mounted) return;
-      if (error is DioException) {
-        final statusCode = error.response?.statusCode;
-        if (statusCode == 404 || statusCode == 204) {
-          setState(() {
-            _lyricsText = '';
-            _lyricsLoading = false;
-            _lyricsError = null;
-          });
-          return;
-        }
-        if (error.response?.data == null) {
-          setState(() {
-            _lyricsText = '';
-            _lyricsLoading = false;
-            _lyricsError = null;
-          });
-          return;
-        }
-        final responseData = error.response?.data;
-        if (responseData is Map<String, dynamic>) {
-          final message = responseData['message']?.toString() ?? '';
-          final success = responseData['success'];
-          final data = responseData['data'];
-          if (success == false && data == null) {
-            setState(() {
-              _lyricsText = '';
-              _lyricsLoading = false;
-              _lyricsError = null;
-            });
-            return;
-          }
-          if (message.contains('Lyrics not found')) {
-            setState(() {
-              _lyricsText = '';
-              _lyricsLoading = false;
-              _lyricsError = null;
-            });
-            return;
-          }
-        }
-        final responseText = responseData?.toString() ?? '';
-        if (responseText.contains('Lyrics not found')) {
-          setState(() {
-            _lyricsText = '';
-            _lyricsLoading = false;
-            _lyricsError = null;
-          });
-          return;
-        }
-      }
-      if (error is TypeError) {
-        setState(() {
-          _lyricsText = '';
-          _lyricsLoading = false;
-          _lyricsError = null;
-        });
-        return;
-      }
-      setState(() {
-        _lyricsLoading = false;
-        _lyricsError = 'Không thể tải lyrics';
-      });
-    }
+    context.read<LyricsBloc>().add(LyricsLoadEvent(songId: _songId!));
   }
 
-  Future<void> _saveLyrics(String text) async {
-    if (_songId == null) return;
-    final trimmed = text.trim();
-    setState(() {
-      _lyricsSaving = true;
-    });
+  void _handleAudioMetadata(AudioMetadata metadata) {
+    if (!mounted) return;
+    if (_currentLyrics != null) return;
 
-    try {
-      if (trimmed.isEmpty) {
-        final response = await sl<DioClient>().dio.delete(
-          ApiConstants.songLyrics(_songId!),
+    if (metadata.syncedLyrics.isNotEmpty) {
+      setState(() {
+        _prefilledSyncedLines = List<SyncedLyricsLineDraft>.from(
+          metadata.syncedLyrics,
         );
-        final body = response.data as Map<String, dynamic>;
-        if (body['success'] != true) {
-          throw Exception(body['message'] as String? ?? 'Không thể xóa lyrics');
-        }
-      } else {
-        final response = await sl<DioClient>().dio.put(
-          ApiConstants.songLyricsStatic(_songId!),
-          data: {'plainText': trimmed},
-        );
-        final body = response.data as Map<String, dynamic>;
-        if (body['success'] != true) {
-          throw Exception(body['message'] as String? ?? 'Không thể lưu lyrics');
-        }
-      }
+        _prefilledPlainText = null;
+      });
+      return;
+    }
 
-      if (!mounted) return;
+    final plainText = metadata.plainLyrics?.trim();
+    if (plainText != null && plainText.isNotEmpty) {
       setState(() {
-        _lyricsText = trimmed;
-        _lyricsSaving = false;
-        _lyricsError = null;
+        _prefilledSyncedLines = null;
+        _prefilledPlainText = plainText;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            trimmed.isEmpty ? 'Lyrics đã được xóa.' : 'Lyrics đã được lưu.',
-          ),
-          backgroundColor: AppColors.successLight,
-        ),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _lyricsSaving = false;
-        _lyricsError = 'Không thể lưu lyrics';
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Không thể lưu lyrics.'),
-          backgroundColor: AppColors.errorLight,
-        ),
-      );
     }
   }
 
@@ -316,6 +188,19 @@ class _SongFormScreenState extends State<SongFormScreen> {
     String? coverFileName,
     bool? active,
   }) {
+    if (!widget.isEditing) {
+      final lyricsState = _lyricsFormKey.currentState;
+      if (lyricsState != null && lyricsState.hasDraftContent()) {
+        final draft = lyricsState.buildDraft();
+        if (draft == null) {
+          return;
+        }
+        _pendingLyricsDraft = draft;
+      } else {
+        _pendingLyricsDraft = null;
+      }
+    }
+
     final hasNewAudio = audioBytes.isNotEmpty && audioFileName.isNotEmpty;
 
     if (widget.isEditing && _songId != null) {
@@ -357,34 +242,125 @@ class _SongFormScreenState extends State<SongFormScreen> {
   Widget build(BuildContext context) {
     final isLight = Theme.of(context).brightness == Brightness.light;
     final bgColor = isLight ? AppColors.pureWhite : AppColors.darkBackground;
-    final textPrimary = isLight
-        ? AppColors.nearBlack
-        : AppColors.darkTextPrimary;
+    final textPrimary = isLight ? AppColors.nearBlack : AppColors.darkTextPrimary;
 
-    return BlocListener<SongBloc, SongState>(
-      listener: (context, state) {
-        if (state is SongOperationSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.successLight,
-            ),
-          );
-          context.pop(true);
-        } else if (state is SongOperationError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.errorLight,
-            ),
-          );
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<SongBloc, SongState>(
+          listener: (context, state) {
+            if (state is SongOperationSuccess) {
+              if (!widget.isEditing && state.song != null) {
+                final draft = _pendingLyricsDraft;
+                if (draft != null) {
+                  setState(() {
+                    _awaitingLyricsCreate = true;
+                  });
+                  _pendingSongSuccessMessage = state.message;
+                  context.read<LyricsBloc>().add(
+                    LyricsCreateEvent(
+                      songId: state.song!.id,
+                      language: draft.language,
+                      plainText: draft.plainText,
+                      syncedLines: draft.syncedLines,
+                    ),
+                  );
+                  return;
+                }
+              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppColors.successLight,
+                ),
+              );
+              context.pop(true);
+            } else if (state is SongOperationError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppColors.errorLight,
+                ),
+              );
+            }
+          },
+        ),
+        BlocListener<LyricsBloc, LyricsState>(
+          listener: (context, state) {
+            if (state is LyricsLoaded) {
+              _currentLyrics = state.lyrics;
+              _prefilledSyncedLines = null;
+              _prefilledPlainText = null;
+            } else if (state is LyricsNotFound) {
+              _currentLyrics = null;
+            } else if (state is LyricsSaved) {
+              _currentLyrics = state.lyrics;
+              _prefilledSyncedLines = null;
+              _prefilledPlainText = null;
+              if (_awaitingLyricsCreate) {
+                _awaitingLyricsCreate = false;
+                _pendingLyricsDraft = null;
+                final message = _pendingSongSuccessMessage ??
+                    'Bai hat da duoc tao thanh cong.';
+                _pendingSongSuccessMessage = null;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(message),
+                    backgroundColor: AppColors.successLight,
+                  ),
+                );
+                context.pop(true);
+                return;
+              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Đã lưu lyrics.'),
+                  backgroundColor: AppColors.successLight,
+                ),
+              );
+            } else if (state is LyricsDeleted) {
+              _currentLyrics = null;
+              _prefilledSyncedLines = null;
+              _prefilledPlainText = null;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Đã xoá lyrics.'),
+                  backgroundColor: AppColors.successLight,
+                ),
+              );
+            } else if (state is LyricsError) {
+              if (_awaitingLyricsCreate) {
+                _awaitingLyricsCreate = false;
+                _pendingLyricsDraft = null;
+                final baseMessage = _pendingSongSuccessMessage ??
+                    'Bai hat da duoc tao thanh cong.';
+                _pendingSongSuccessMessage = null;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '$baseMessage Nhung tao lyrics that bai: ${state.message}',
+                    ),
+                    backgroundColor: AppColors.errorLight,
+                  ),
+                );
+                context.pop(true);
+                return;
+              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Lỗi lyrics: ${state.message}'),
+                  backgroundColor: AppColors.errorLight,
+                ),
+              );
+            }
+          },
+        ),
+      ],
       child: ColoredBox(
         color: bgColor,
         child: BlocBuilder<SongBloc, SongState>(
           builder: (context, state) {
-            final isOperationLoading = state is SongOperationInProgress;
+            final isOperationLoading =
+                state is SongOperationInProgress || _awaitingLyricsCreate;
             final isDetailLoading = state is SongDetailLoading;
 
             Song? initialSong;
@@ -422,32 +398,111 @@ class _SongFormScreenState extends State<SongFormScreen> {
                   const SizedBox(height: AppSpacing.xxl),
                   if (isDetailLoading)
                     const Center(child: CircularProgressIndicator())
-                  else
+                  else ...[
                     SongFormWidget(
                       key: ValueKey(initialSong?.id ?? 'new'),
                       initialSong: initialSong,
                       isLoading: isOperationLoading,
                       optionsLoading: _isOptionsLoading,
                       optionsError: _optionsError,
-                      lyricsText: _lyricsText,
-                      lyricsLoading: _lyricsLoading,
-                      lyricsSaving: _lyricsSaving,
-                      lyricsError: _lyricsError,
-                      lyricsEnabled: widget.isEditing,
                       artistOptions: _artistOptions,
                       genreOptions: _genreOptions,
                       albumOptions: _albumOptions,
                       onReloadOptions: _loadOptions,
-                      onReloadLyrics: _loadLyrics,
-                      onSaveLyrics: _saveLyrics,
+                      onAudioMetadata: _handleAudioMetadata,
                       onSubmit: _onSubmit,
                     ),
+                    const SizedBox(height: AppSpacing.xxl),
+                    if (widget.isEditing && _songId != null)
+                      _buildLyricsSection(context)
+                    else
+                      _buildLyricsDraftSection(context),
+                  ],
                 ],
               ),
             );
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildLyricsSection(BuildContext context) {
+    return BlocBuilder<LyricsBloc, LyricsState>(
+      builder: (context, state) {
+        final isSaving = state is LyricsSaving;
+
+        if (state is LyricsLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (state is LyricsError) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text('Lỗi: ${state.message}',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyLarge
+                          ?.copyWith(color: Colors.red)),
+                  const SizedBox(height: AppSpacing.md),
+                  ElevatedButton(
+                    onPressed: _loadLyrics,
+                    child: const Text('Thử lại'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Stack(
+          children: [
+            LyricsFormWidget(
+              key: ValueKey('lyrics_form_$_songId'),
+              songId: _songId!,
+              existingLyrics: _currentLyrics,
+              prefilledSyncedLines: _prefilledSyncedLines,
+              prefilledPlainText: _prefilledPlainText,
+              isSaving: isSaving,
+            ),
+            if (isSaving)
+              const Positioned.fill(
+                child: Center(child: CircularProgressIndicator()),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildLyricsDraftSection(BuildContext context) {
+    return BlocBuilder<LyricsBloc, LyricsState>(
+      builder: (context, state) {
+        final isSaving = state is LyricsSaving;
+        return Stack(
+          children: [
+            LyricsFormWidget(
+              key: _lyricsFormKey,
+              songId: 'draft',
+              existingLyrics: null,
+              prefilledSyncedLines: _prefilledSyncedLines,
+              prefilledPlainText: _prefilledPlainText,
+              isSaving: isSaving,
+              allowSubmit: false,
+              allowDelete: false,
+            ),
+            if (isSaving)
+              const Positioned.fill(
+                child: Center(child: CircularProgressIndicator()),
+              ),
+          ],
+        );
+      },
     );
   }
 }

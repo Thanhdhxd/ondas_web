@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:ondas_web/core/constants/app_constants.dart';
 import 'package:ondas_web/core/theme/app_theme.dart';
@@ -23,6 +24,16 @@ class _OndasAppState extends State<OndasApp> {
       themeMode: ThemeMode.system,
       routerConfig: _router,
       debugShowCheckedModeBanner: false,
+      locale: const Locale('vi', 'VN'),
+      supportedLocales: const [
+        Locale('vi', 'VN'),
+        Locale('en', 'US'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
     );
   }
 }

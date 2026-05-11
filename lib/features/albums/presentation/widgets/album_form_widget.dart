@@ -452,6 +452,13 @@ class _FieldsCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(AppRadius.container),
                           borderSide: BorderSide(color: borderColor),
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.container),
+                          borderSide: const BorderSide(
+                            color: AppColors.nearBlack,
+                            width: 1.3,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -606,7 +613,7 @@ class _CoverCard extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
           ),
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.xl),
           Center(
             child: Container(
               width: 160,
@@ -623,7 +630,7 @@ class _CoverCard extends StatelessWidget {
                   : null,
             ),
           ),
-          const Spacer(),
+          const SizedBox(height: AppSpacing.lg),
           OutlinedButton.icon(
             onPressed: isLoading ? null : onPick,
             icon: const Icon(Icons.upload_outlined, size: 14),
@@ -702,6 +709,17 @@ class _FormField extends StatelessWidget {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.container),
               borderSide: BorderSide(color: borderColor),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.container),
+              borderSide: BorderSide(color: borderColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.container),
+              borderSide: const BorderSide(
+                color: AppColors.nearBlack,
+                width: 1.3,
+              ),
             ),
           ),
         ),

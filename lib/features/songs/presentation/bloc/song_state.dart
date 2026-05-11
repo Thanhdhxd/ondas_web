@@ -63,11 +63,12 @@ class SongOperationInProgress extends SongState {
 
 class SongOperationSuccess extends SongState {
   final String message;
+  final Song? song;
 
-  const SongOperationSuccess({required this.message});
+  const SongOperationSuccess({required this.message, this.song});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, song];
 }
 
 class SongOperationError extends SongState {

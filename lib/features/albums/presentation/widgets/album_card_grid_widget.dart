@@ -30,25 +30,38 @@ class AlbumCardGridWidget extends StatelessWidget {
 
     if (albums.isEmpty) {
       return Center(
-        child: Text(
-          'Không có album nào.',
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(color: textSecondary),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.album_outlined,
+              size: 56,
+              color: textSecondary.withAlpha(80),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Không có album nào.',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: textSecondary),
+            ),
+          ],
         ),
       );
     }
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth > 1200
-            ? 4
-            : constraints.maxWidth > 860
-                ? 3
-                : constraints.maxWidth > 560
-                    ? 2
-                    : 1;
+        final crossAxisCount = constraints.maxWidth > 1400
+            ? 5
+            : constraints.maxWidth > 1050
+                ? 4
+                : constraints.maxWidth > 720
+                    ? 3
+                    : constraints.maxWidth > 440
+                        ? 2
+                        : 1;
 
         return GridView.builder(
           padding: EdgeInsets.zero,
@@ -56,7 +69,7 @@ class AlbumCardGridWidget extends StatelessWidget {
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: AppSpacing.lg,
             mainAxisSpacing: AppSpacing.lg,
-            childAspectRatio: 0.72,
+            childAspectRatio: 0.78,
           ),
           itemCount: albums.length,
           itemBuilder: (context, index) => _AlbumCard(
@@ -90,8 +103,217 @@ class _AlbumCard extends StatefulWidget {
 class _AlbumCardState extends State<_AlbumCard> {
   bool _hovered = false;
 
-  Color _typeColor(String? type) {
-    switch (type?.toUpperCase()) {
+  @override
+  Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    final bgCard = isLight ? AppColors.pureWhite : AppColors.darkSurface;
+    final borderColor = isLight ? AppColors.lightGray : AppColors.darkBorder;
+    final borderHover = isLight ? AppColors.silver : AppColors.darkBorderStrong;
+    final textPrimary =
+        isLight ? AppColors.nearBlack : AppColors.darkTextPrimary;
+    final textSecondary =
+        isLight ? AppColors.stone : AppColors.darkTextSecondary;
+
+    final album = widget.album;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      cursor: SystemMouseCursors.click,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        decoration: BoxDecoration(
+          color: bgCard,
+          borderRadius: BorderRadius.circular(AppRadius.container),
+          border: Border.all(
+            color: _hovered ? borderHover : borderColor,
+            width: 1.0,
+          ),
+          boxShadow: _hovered
+              ? [
+                  BoxShadow(
+                    color: AppColors.pureBlack.withAlpha(18),
+                    blurRadius: 24,
+                    spreadRadius: -4,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: AppColors.pureBlack.withAlpha(5),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.container),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Cover with overlays ───────────────────────────────────────
+              Expanded(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _CoverImage(coverUrl: album.coverUrl, title: album.title),
+
+                    // Gradient scrim on hover (pointer-transparent)
+                    IgnorePointer(
+                      child: AnimatedOpacity(
+                        opacity: _hovered ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 200),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withAlpha(90),
+                              ],
+                              stops: const [0.45, 1.0],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Type badge — top left
+                    Positioned(
+                      top: AppSpacing.sm,
+                      left: AppSpacing.sm,
+                      child: _TypeBadge(albumType: album.albumType),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Info section ──────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.smMd,
+                  AppSpacing.md,
+                  AppSpacing.smMd,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Title
+                    Text(
+                      album.title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: textPrimary,
+                        height: 1.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+
+                    // Artist
+                    Text(
+                      album.artistNames.isNotEmpty
+                          ? album.artistNames.join(', ')
+                          : 'Chưa có nghệ sĩ',
+                      style: TextStyle(fontSize: 12, color: textSecondary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+
+                    // Meta row: tracks · date | edit | delete
+                    Row(
+                      children: [
+                        Icon(Icons.music_note_rounded,
+                            size: 11, color: textSecondary),
+                        const SizedBox(width: 3),
+                        Text(
+                          '${album.totalTracks}',
+                          style: TextStyle(fontSize: 11, color: textSecondary),
+                        ),
+                        if (album.releaseDate != null) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.xs),
+                            child: Text(
+                              '·',
+                              style: TextStyle(
+                                  fontSize: 11, color: textSecondary),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              album.releaseDate!,
+                              style: TextStyle(
+                                  fontSize: 11, color: textSecondary),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ] else
+                          const Spacer(),
+
+                        // Edit button
+                        SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: IconButton(
+                            key: Key('albumCard_editButton_${album.id}'),
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(Icons.edit_rounded, size: 14),
+                            tooltip: 'Sửa',
+                            onPressed: () => widget.onEdit(album),
+                            color: textSecondary,
+                            hoverColor: isLight
+                                ? AppColors.snow
+                                : AppColors.darkSurfaceElevated,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+
+                        // Delete button
+                        SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: IconButton(
+                            key: Key('albumCard_deleteButton_${album.id}'),
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(Icons.delete_rounded, size: 14),
+                            tooltip: 'Xóa',
+                            onPressed: () => widget.onDelete(album),
+                            color: AppColors.errorLight,
+                            hoverColor: AppColors.errorSurfaceLight,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Type badge ───────────────────────────────────────────────────────────────
+
+class _TypeBadge extends StatelessWidget {
+  final String? albumType;
+
+  const _TypeBadge({required this.albumType});
+
+  Color _badgeColor() {
+    switch (albumType?.toUpperCase()) {
       case 'SINGLE':
         return Colors.blue.shade700;
       case 'EP':
@@ -103,183 +325,19 @@ class _AlbumCardState extends State<_AlbumCard> {
 
   @override
   Widget build(BuildContext context) {
-    final isLight = Theme.of(context).brightness == Brightness.light;
-    final bgCard = isLight ? AppColors.pureWhite : AppColors.darkSurface;
-    final bgHovered =
-        isLight ? AppColors.snow : AppColors.darkSurfaceElevated;
-    final borderColor = isLight ? AppColors.lightGray : AppColors.darkBorder;
-    final borderHovered =
-        isLight ? AppColors.stone : AppColors.darkBorderStrong;
-    final textPrimary =
-        isLight ? AppColors.nearBlack : AppColors.darkTextPrimary;
-    final textSecondary =
-        isLight ? AppColors.stone : AppColors.darkTextSecondary;
-
-    final album = widget.album;
-    final typeColor = _typeColor(album.albumType);
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        decoration: BoxDecoration(
-          color: _hovered ? bgHovered : bgCard,
-          borderRadius: BorderRadius.circular(AppRadius.container),
-          border: Border.all(
-            color: _hovered ? borderHovered : borderColor,
-            width: _hovered ? 1.5 : 1.0,
-          ),
-          boxShadow: _hovered
-              ? [
-                  BoxShadow(
-                    color: AppColors.pureBlack.withAlpha(10),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : [],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Ảnh bìa ───────────────────────────────────────────────────────
-            Expanded(
-              flex: 5,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.container),
-                ),
-                child: _CoverImage(
-                  coverUrl: album.coverUrl,
-                  title: album.title,
-                ),
-              ),
-            ),
-
-            // ── Thông tin ─────────────────────────────────────────────────────
-            Expanded(
-              flex: 4,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
-                  AppSpacing.sm,
-                  AppSpacing.md,
-                  AppSpacing.sm,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Badge loại
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: typeColor.withAlpha(22),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        (album.albumType ?? 'ALBUM').toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: typeColor,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-
-                    // Tên album
-                    Text(
-                      album.title,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: textPrimary,
-                        height: 1.3,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-
-                    // Nghệ sĩ
-                    Text(
-                      album.artistNames.isNotEmpty
-                          ? album.artistNames.join(', ')
-                          : 'Chưa có nghệ sĩ',
-                      style: TextStyle(fontSize: 12, color: textSecondary),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-
-                    const Spacer(),
-
-                    // Hàng dưới: metadata + nút
-                    Row(
-                      children: [
-                        Icon(Icons.music_note_outlined,
-                            size: 12, color: textSecondary),
-                        const SizedBox(width: 3),
-                        Text(
-                          '${album.totalTracks}',
-                          style:
-                              TextStyle(fontSize: 11, color: textSecondary),
-                        ),
-                        if (album.releaseDate != null) ...[
-                          const SizedBox(width: AppSpacing.sm),
-                          Icon(Icons.calendar_today_outlined,
-                              size: 12, color: textSecondary),
-                          const SizedBox(width: 3),
-                          Expanded(
-                            child: Text(
-                              album.releaseDate!,
-                              style: TextStyle(
-                                  fontSize: 11, color: textSecondary),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ] else
-                          const Spacer(),
-                        // Nút sửa
-                        SizedBox(
-                          width: 28,
-                          height: 28,
-                          child: IconButton(
-                            key: Key('albumCard_editButton_${album.id}'),
-                            padding: EdgeInsets.zero,
-                            icon:
-                                const Icon(Icons.edit_outlined, size: 15),
-                            tooltip: 'Sửa',
-                            onPressed: () => widget.onEdit(album),
-                            color: textSecondary,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        // Nút xóa
-                        SizedBox(
-                          width: 28,
-                          height: 28,
-                          child: IconButton(
-                            key: Key('albumCard_deleteButton_${album.id}'),
-                            padding: EdgeInsets.zero,
-                            icon: const Icon(Icons.delete_outline, size: 15),
-                            tooltip: 'Xóa',
-                            onPressed: () => widget.onDelete(album),
-                            color: AppColors.errorLight,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: _badgeColor().withAlpha(210),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        (albumType ?? 'ALBUM').toUpperCase(),
+        style: const TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+          letterSpacing: 0.8,
         ),
       ),
     );
@@ -328,15 +386,15 @@ class _Placeholder extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.album, size: 40, color: AppColors.stone.withAlpha(100)),
+          Icon(Icons.album_rounded, size: 52, color: AppColors.stone.withAlpha(70)),
           if (title.isNotEmpty) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.sm),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   color: AppColors.stone,
                   fontWeight: FontWeight.w500,
                 ),

@@ -18,6 +18,7 @@ class CreateSongParams extends Equatable {
   final String audioFileName;
   final List<int>? coverBytes;
   final String? coverFileName;
+  final String? lyrics;
 
   const CreateSongParams({
     required this.title,
@@ -30,6 +31,7 @@ class CreateSongParams extends Equatable {
     required this.audioFileName,
     this.coverBytes,
     this.coverFileName,
+    this.lyrics,
   });
 
   @override

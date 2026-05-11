@@ -42,6 +42,7 @@ class SongCreateEvent extends SongEvent {
   final String audioFileName;
   final List<int>? coverBytes;
   final String? coverFileName;
+  final String? lyrics;
 
   const SongCreateEvent({
     required this.title,
@@ -54,6 +55,7 @@ class SongCreateEvent extends SongEvent {
     required this.audioFileName,
     this.coverBytes,
     this.coverFileName,
+    this.lyrics,
   });
 
   @override

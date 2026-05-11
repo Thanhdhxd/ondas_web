@@ -22,6 +22,7 @@ abstract class SongRemoteDataSource {
     required String audioFileName,
     List<int>? coverBytes,
     String? coverFileName,
+    String? lyrics,
   });
 
   Future<SongModel> updateSong({

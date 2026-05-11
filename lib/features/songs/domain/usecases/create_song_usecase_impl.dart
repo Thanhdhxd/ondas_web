@@ -22,6 +22,7 @@ class CreateSongUseCaseImpl implements CreateSongUseCase {
       audioFileName: params.audioFileName,
       coverBytes: params.coverBytes,
       coverFileName: params.coverFileName,
+      lyrics: params.lyrics,
     );
   }
 }

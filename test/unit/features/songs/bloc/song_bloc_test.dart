@@ -174,7 +174,10 @@ void main() {
       ),
       expect: () => [
         const SongOperationInProgress(),
-        const SongOperationSuccess(message: 'Bai hat da duoc tao thanh cong.'),
+        const SongOperationSuccess(
+          message: 'Bai hat da duoc tao thanh cong.',
+          song: tSong,
+        ),
       ],
     );
   });

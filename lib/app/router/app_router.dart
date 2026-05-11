@@ -12,6 +12,7 @@ import 'package:ondas_web/features/artists/presentation/screens/artists_screen.d
 import 'package:ondas_web/features/genres/presentation/bloc/genre_bloc.dart';
 import 'package:ondas_web/features/genres/presentation/screens/genre_form_screen.dart';
 import 'package:ondas_web/features/genres/presentation/screens/genres_screen.dart';
+import 'package:ondas_web/features/lyrics/presentation/bloc/lyrics_bloc.dart';
 import 'package:ondas_web/features/songs/presentation/bloc/song_bloc.dart';
 import 'package:ondas_web/features/songs/presentation/screens/song_form_screen.dart';
 import 'package:ondas_web/features/songs/presentation/screens/songs_screen.dart';
@@ -88,16 +89,22 @@ GoRouter createRouter() {
               GoRoute(
                 path: 'new',
                 name: 'songNew',
-                builder: (context, state) => BlocProvider(
-                  create: (_) => sl<SongBloc>(),
+                builder: (context, state) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(create: (_) => sl<SongBloc>()),
+                    BlocProvider(create: (_) => sl<LyricsBloc>()),
+                  ],
                   child: const SongFormScreen(),
                 ),
               ),
               GoRoute(
                 path: ':id/edit',
                 name: 'songEdit',
-                builder: (context, state) => BlocProvider(
-                  create: (_) => sl<SongBloc>(),
+                builder: (context, state) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(create: (_) => sl<SongBloc>()),
+                    BlocProvider(create: (_) => sl<LyricsBloc>()),
+                  ],
                   child: SongFormScreen(songId: state.pathParameters['id']),
                 ),
               ),

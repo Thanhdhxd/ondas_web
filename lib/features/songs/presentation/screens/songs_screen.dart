@@ -172,19 +172,52 @@ class _SongsContent extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Bài hát',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
-                              color: textPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Bài hát',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  color: textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          if (totalElements > 0) ...
+                            [
+                              const SizedBox(width: AppSpacing.sm),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.sm + 2,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isLight
+                                      ? AppColors.lightGray
+                                      : AppColors.darkSurfaceElevated,
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.pill,
+                                  ),
+                                ),
+                                child: Text(
+                                  '$totalElements',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: textSecondary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                        ],
                       ),
                       const SizedBox(height: AppSpacing.xxs),
                       Text(
-                        '$totalElements bài hát',
+                        totalElements == 0
+                            ? 'Chưa có bài hát nào'
+                            : '$totalElements bài hát trong thư viện',
                         style: TextStyle(fontSize: 13, color: textSecondary),
                       ),
                     ],
