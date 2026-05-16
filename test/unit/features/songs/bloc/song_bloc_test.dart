@@ -9,8 +9,10 @@ import 'package:ondas_web/features/songs/domain/usecases/create_song_usecase.dar
 import 'package:ondas_web/features/songs/domain/usecases/delete_song_usecase.dart';
 import 'package:ondas_web/features/songs/domain/usecases/get_song_usecase.dart';
 import 'package:ondas_web/features/songs/domain/usecases/get_songs_usecase.dart';
+import 'package:ondas_web/features/songs/domain/usecases/replace_song_tags_usecase.dart';
 import 'package:ondas_web/features/songs/domain/usecases/update_song_usecase.dart';
 import 'package:ondas_web/features/songs/presentation/bloc/song_bloc.dart';
+import 'package:ondas_web/features/tags/data/models/tag_model.dart';
 import 'package:ondas_web/features/songs/presentation/bloc/song_event.dart';
 import 'package:ondas_web/features/songs/presentation/bloc/song_state.dart';
 
@@ -24,6 +26,8 @@ class MockUpdateSongUseCase extends Mock implements UpdateSongUseCase {}
 
 class MockDeleteSongUseCase extends Mock implements DeleteSongUseCase {}
 
+class MockReplaceSongTagsUseCase extends Mock implements ReplaceSongTagsUseCase {}
+
 void main() {
   late SongBloc bloc;
   late MockGetSongsUseCase mockGetSongsUseCase;
@@ -31,6 +35,7 @@ void main() {
   late MockCreateSongUseCase mockCreateSongUseCase;
   late MockUpdateSongUseCase mockUpdateSongUseCase;
   late MockDeleteSongUseCase mockDeleteSongUseCase;
+  late MockReplaceSongTagsUseCase mockReplaceSongTagsUseCase;
 
   const tSong = SongModel(
     id: 'uuid-1',
@@ -63,6 +68,9 @@ void main() {
     registerFallbackValue(tCreateParams);
     registerFallbackValue(const UpdateSongParams(id: 'uuid-1'));
     registerFallbackValue(const DeleteSongParams(id: 'uuid-1'));
+    registerFallbackValue(
+      const ReplaceSongTagsParams(songId: 'uuid-1', tagIds: []),
+    );
   });
 
   setUp(() {
@@ -71,12 +79,17 @@ void main() {
     mockCreateSongUseCase = MockCreateSongUseCase();
     mockUpdateSongUseCase = MockUpdateSongUseCase();
     mockDeleteSongUseCase = MockDeleteSongUseCase();
+    mockReplaceSongTagsUseCase = MockReplaceSongTagsUseCase();
+    when(() => mockReplaceSongTagsUseCase(any())).thenAnswer(
+      (_) async => const Right(<TagModel>[]),
+    );
     bloc = SongBloc(
       getSongsUseCase: mockGetSongsUseCase,
       getSongUseCase: mockGetSongUseCase,
       createSongUseCase: mockCreateSongUseCase,
       updateSongUseCase: mockUpdateSongUseCase,
       deleteSongUseCase: mockDeleteSongUseCase,
+      replaceSongTagsUseCase: mockReplaceSongTagsUseCase,
     );
   });
 
@@ -175,7 +188,7 @@ void main() {
       expect: () => [
         const SongOperationInProgress(),
         const SongOperationSuccess(
-          message: 'Bai hat da duoc tao thanh cong.',
+          message: 'Bài hát đã được tạo thành công.',
           song: tSong,
         ),
       ],
@@ -194,7 +207,7 @@ void main() {
       expect: () => [
         const SongOperationInProgress(),
         const SongOperationSuccess(
-          message: 'Bai hat da duoc cap nhat thanh cong.',
+          message: 'Bài hát đã được cập nhật thành công.',
         ),
       ],
     );

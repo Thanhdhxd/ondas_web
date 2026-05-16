@@ -48,6 +48,16 @@ const kAdminNavItems = [
     route: AppConstants.routeGenres,
   ),
   AdminNavItem(
+    label: 'Tags',
+    icon: Icons.local_offer_outlined,
+    route: AppConstants.routeTags,
+  ),
+  AdminNavItem(
+    label: 'Playlists',
+    icon: Icons.queue_music_outlined,
+    route: AppConstants.routePlaylists,
+  ),
+  AdminNavItem(
     label: 'Users',
     icon: Icons.people_outline,
     route: AppConstants.routeUsers,

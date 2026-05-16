@@ -24,6 +24,8 @@ class SongFormWidget extends StatefulWidget {
   final List<SongFormOption<String>> artistOptions;
   final List<SongFormOption<int>> genreOptions;
   final List<SongFormOption<String>> albumOptions;
+  final List<SongFormOption<int>> tagOptions;
+  final Set<int>? initialTagIds;
   final Future<void> Function()? onReloadOptions;
   final ValueChanged<AudioMetadata>? onAudioMetadata;
   final void Function({
@@ -33,6 +35,7 @@ class SongFormWidget extends StatefulWidget {
     String? releaseDate,
     required List<String> artistIds,
     required List<int> genreIds,
+    required List<int> tagIds,
     required List<int> audioBytes,
     required String audioFileName,
     List<int>? coverBytes,
@@ -50,6 +53,8 @@ class SongFormWidget extends StatefulWidget {
     required this.artistOptions,
     required this.genreOptions,
     required this.albumOptions,
+    required this.tagOptions,
+    this.initialTagIds,
     this.onReloadOptions,
     this.onAudioMetadata,
     required this.onSubmit,
@@ -75,6 +80,7 @@ class _SongFormWidgetState extends State<SongFormWidget> {
   String? _selectedAlbumId;
   Set<String> _selectedArtistIds = <String>{};
   Set<int> _selectedGenreIds = <int>{};
+  Set<int> _selectedTagIds = <int>{};
 
   bool get _isEditing => widget.initialSong != null;
 
@@ -102,7 +108,19 @@ class _SongFormWidgetState extends State<SongFormWidget> {
     _selectedAlbumId = song?.albumId;
     _selectedArtistIds = song == null ? <String>{} : song.artistIds.toSet();
     _selectedGenreIds = song == null ? <int>{} : song.genreIds.toSet();
+    _selectedTagIds = Set<int>.from(widget.initialTagIds ?? const <int>{});
     _active = song?.active ?? true;
+  }
+
+  @override
+  void didUpdateWidget(covariant SongFormWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialTagIds != null &&
+        widget.initialTagIds != oldWidget.initialTagIds) {
+      setState(() {
+        _selectedTagIds = Set<int>.from(widget.initialTagIds!);
+      });
+    }
   }
 
   @override
@@ -201,6 +219,20 @@ class _SongFormWidgetState extends State<SongFormWidget> {
     }
   }
 
+  Future<void> _pickTags() async {
+    final selected = await showDialog<Set<int>>(
+      context: context,
+      builder: (_) => _MultiSelectDialog<int>(
+        title: 'Chọn tag',
+        options: widget.tagOptions,
+        selectedValues: _selectedTagIds,
+      ),
+    );
+    if (selected != null) {
+      setState(() => _selectedTagIds = selected);
+    }
+  }
+
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
@@ -249,6 +281,7 @@ class _SongFormWidgetState extends State<SongFormWidget> {
                 '${_selectedReleaseDate!.day.toString().padLeft(2, '0')}',
       artistIds: _selectedArtistIds.toList(),
       genreIds: _selectedGenreIds.toList(),
+      tagIds: _selectedTagIds.toList(),
       audioBytes: _audioBytes ?? const <int>[],
       audioFileName: _audioFileName ?? '',
       coverBytes: _coverBytes,
@@ -332,14 +365,17 @@ class _SongFormWidgetState extends State<SongFormWidget> {
                     selectedAlbumId: _selectedAlbumId,
                     selectedArtistIds: _selectedArtistIds,
                     selectedGenreIds: _selectedGenreIds,
+                    selectedTagIds: _selectedTagIds,
                     albumOptions: widget.albumOptions,
                     artistOptions: widget.artistOptions,
                     genreOptions: widget.genreOptions,
+                    tagOptions: widget.tagOptions,
                     optionsLoading: widget.optionsLoading,
                     onAlbumChanged: (value) =>
                         setState(() => _selectedAlbumId = value),
                     onPickArtists: _pickArtists,
                     onPickGenres: _pickGenres,
+                    onPickTags: _pickTags,
                     active: _active,
                     onActiveChanged: (value) => setState(() => _active = value),
                     isEditing: _isEditing,
@@ -432,13 +468,16 @@ class _FieldsCard extends StatelessWidget {
   final String? selectedAlbumId;
   final Set<String> selectedArtistIds;
   final Set<int> selectedGenreIds;
+  final Set<int> selectedTagIds;
   final List<SongFormOption<String>> albumOptions;
   final List<SongFormOption<String>> artistOptions;
   final List<SongFormOption<int>> genreOptions;
+  final List<SongFormOption<int>> tagOptions;
   final bool optionsLoading;
   final ValueChanged<String?> onAlbumChanged;
   final VoidCallback onPickArtists;
   final VoidCallback onPickGenres;
+  final VoidCallback onPickTags;
   final bool active;
   final ValueChanged<bool> onActiveChanged;
   final bool isEditing;
@@ -455,13 +494,16 @@ class _FieldsCard extends StatelessWidget {
     required this.selectedAlbumId,
     required this.selectedArtistIds,
     required this.selectedGenreIds,
+    required this.selectedTagIds,
     required this.albumOptions,
     required this.artistOptions,
     required this.genreOptions,
+    required this.tagOptions,
     required this.optionsLoading,
     required this.onAlbumChanged,
     required this.onPickArtists,
     required this.onPickGenres,
+    required this.onPickTags,
     required this.active,
     required this.onActiveChanged,
     required this.isEditing,
@@ -653,6 +695,17 @@ class _FieldsCard extends StatelessWidget {
             borderColor: borderColor,
             textColor: textPrimary,
             hintText: 'Chọn thể loại',
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          _MultiSelectField<int>(
+            key: const Key('songForm_tagMultiSelect'),
+            label: 'Tag',
+            options: tagOptions,
+            selectedValues: selectedTagIds,
+            onTap: optionsLoading ? null : onPickTags,
+            borderColor: borderColor,
+            textColor: textPrimary,
+            hintText: 'Chọn tag (tùy chọn)',
           ),
           const SizedBox(height: AppSpacing.xl),
           Row(
@@ -997,7 +1050,7 @@ class _MediaCard extends StatelessWidget {
           ],
           const Spacer(),
           Text(
-            'Nguồn dữ liệu artist, genre, album được tải từ API.',
+            'Nguồn dữ liệu artist, genre, album, tag được tải từ API.',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: textSecondary, fontSize: 11),

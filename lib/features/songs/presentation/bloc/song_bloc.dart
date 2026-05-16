@@ -3,6 +3,7 @@ import 'package:ondas_web/features/songs/domain/usecases/create_song_usecase.dar
 import 'package:ondas_web/features/songs/domain/usecases/delete_song_usecase.dart';
 import 'package:ondas_web/features/songs/domain/usecases/get_song_usecase.dart';
 import 'package:ondas_web/features/songs/domain/usecases/get_songs_usecase.dart';
+import 'package:ondas_web/features/songs/domain/usecases/replace_song_tags_usecase.dart';
 import 'package:ondas_web/features/songs/domain/usecases/update_song_usecase.dart';
 import 'package:ondas_web/features/songs/presentation/bloc/song_event.dart';
 import 'package:ondas_web/features/songs/presentation/bloc/song_state.dart';
@@ -13,6 +14,7 @@ class SongBloc extends Bloc<SongEvent, SongState> {
   final CreateSongUseCase _createSongUseCase;
   final UpdateSongUseCase _updateSongUseCase;
   final DeleteSongUseCase _deleteSongUseCase;
+  final ReplaceSongTagsUseCase _replaceSongTagsUseCase;
 
   SongBloc({
     required GetSongsUseCase getSongsUseCase,
@@ -20,11 +22,13 @@ class SongBloc extends Bloc<SongEvent, SongState> {
     required CreateSongUseCase createSongUseCase,
     required UpdateSongUseCase updateSongUseCase,
     required DeleteSongUseCase deleteSongUseCase,
+    required ReplaceSongTagsUseCase replaceSongTagsUseCase,
   }) : _getSongsUseCase = getSongsUseCase,
        _getSongUseCase = getSongUseCase,
        _createSongUseCase = createSongUseCase,
        _updateSongUseCase = updateSongUseCase,
        _deleteSongUseCase = deleteSongUseCase,
+       _replaceSongTagsUseCase = replaceSongTagsUseCase,
        super(const SongInitial()) {
     on<SongLoadListEvent>(_onLoadList);
     on<SongLoadDetailEvent>(_onLoadDetail);
@@ -87,14 +91,22 @@ class SongBloc extends Bloc<SongEvent, SongState> {
         lyrics: event.lyrics,
       ),
     );
-    result.fold(
-      (failure) => emit(SongOperationError(message: failure.message)),
-      (song) => emit(
-        SongOperationSuccess(
-          message: 'Bai hat da duoc tao thanh cong.',
-          song: song,
-        ),
-      ),
+    await result.fold(
+      (failure) async => emit(SongOperationError(message: failure.message)),
+      (song) async {
+        final tagMessage = await _saveSongTags(
+          songId: song.id,
+          tagIds: event.tagIds,
+        );
+        emit(
+          SongOperationSuccess(
+            message: tagMessage == null
+                ? 'Bài hát đã được tạo thành công.'
+                : 'Bài hát đã được tạo thành công. $tagMessage',
+            song: song,
+          ),
+        );
+      },
     );
   }
 
@@ -119,13 +131,35 @@ class SongBloc extends Bloc<SongEvent, SongState> {
         coverFileName: event.coverFileName,
       ),
     );
-    result.fold(
-      (failure) => emit(SongOperationError(message: failure.message)),
-      (_) => emit(
-        const SongOperationSuccess(
-          message: 'Bai hat da duoc cap nhat thanh cong.',
-        ),
-      ),
+    await result.fold(
+      (failure) async => emit(SongOperationError(message: failure.message)),
+      (_) async {
+        final tagIds = event.tagIds;
+        String? tagMessage;
+        if (tagIds != null) {
+          tagMessage = await _saveSongTags(songId: event.id, tagIds: tagIds);
+        }
+        emit(
+          SongOperationSuccess(
+            message: tagMessage == null
+                ? 'Bài hát đã được cập nhật thành công.'
+                : 'Bài hát đã được cập nhật thành công. $tagMessage',
+          ),
+        );
+      },
+    );
+  }
+
+  Future<String?> _saveSongTags({
+    required String songId,
+    required List<int> tagIds,
+  }) async {
+    final result = await _replaceSongTagsUseCase(
+      ReplaceSongTagsParams(songId: songId, tagIds: tagIds),
+    );
+    return result.fold(
+      (failure) => 'Nhưng gắn tag thất bại: ${failure.message}',
+      (_) => null,
     );
   }
 

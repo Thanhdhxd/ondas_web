@@ -5,6 +5,7 @@ import 'package:ondas_web/core/network/api_response.dart';
 import 'package:ondas_web/features/songs/data/datasources/song_remote_datasource.dart';
 import 'package:ondas_web/features/songs/domain/entities/song.dart';
 import 'package:ondas_web/features/songs/domain/repositories/song_repository.dart';
+import 'package:ondas_web/features/tags/domain/entities/tag.dart';
 
 class SongRepositoryImpl implements SongRepository {
   final SongRemoteDataSource _dataSource;
@@ -116,6 +117,32 @@ class SongRepositoryImpl implements SongRepository {
     try {
       await _dataSource.deleteSong(id: id);
       return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Tag>>> getSongTags({required String songId}) async {
+    try {
+      final result = await _dataSource.getSongTags(songId: songId);
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Tag>>> replaceSongTags({
+    required String songId,
+    required List<int> tagIds,
+  }) async {
+    try {
+      final result = await _dataSource.replaceSongTags(
+        songId: songId,
+        tagIds: tagIds,
+      );
+      return Right(result);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     }

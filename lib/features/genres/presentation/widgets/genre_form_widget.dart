@@ -383,7 +383,7 @@ class _FieldsCard extends StatelessWidget {
             hintText: 'Mô tả ngắn về thể loại...',
             textColor: textPrimary,
             borderColor: borderColor,
-            maxLines: 5,
+            maxLines: 3,
           ),
         ],
       ),
@@ -543,6 +543,15 @@ class _FormField extends StatelessWidget {
                 maxLines > 1 ? AppRadius.container : AppRadius.pill,
               ),
               borderSide: BorderSide(color: borderColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(
+                maxLines > 1 ? AppRadius.container : AppRadius.pill,
+              ),
+              borderSide: const BorderSide(
+                color: AppColors.nearBlack,
+                width: 1.3,
+              ),
             ),
           ),
         ),

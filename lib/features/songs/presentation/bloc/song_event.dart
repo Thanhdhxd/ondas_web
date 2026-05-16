@@ -38,6 +38,7 @@ class SongCreateEvent extends SongEvent {
   final String? releaseDate;
   final List<String> artistIds;
   final List<int> genreIds;
+  final List<int> tagIds;
   final List<int> audioBytes;
   final String audioFileName;
   final List<int>? coverBytes;
@@ -51,6 +52,7 @@ class SongCreateEvent extends SongEvent {
     this.releaseDate,
     required this.artistIds,
     required this.genreIds,
+    this.tagIds = const [],
     required this.audioBytes,
     required this.audioFileName,
     this.coverBytes,
@@ -66,6 +68,7 @@ class SongCreateEvent extends SongEvent {
     releaseDate,
     artistIds,
     genreIds,
+    tagIds,
     audioFileName,
     coverFileName,
   ];
@@ -79,6 +82,7 @@ class SongUpdateEvent extends SongEvent {
   final String? releaseDate;
   final List<String>? artistIds;
   final List<int>? genreIds;
+  final List<int>? tagIds;
   final bool? active;
   final List<int>? audioBytes;
   final String? audioFileName;
@@ -93,6 +97,7 @@ class SongUpdateEvent extends SongEvent {
     this.releaseDate,
     this.artistIds,
     this.genreIds,
+    this.tagIds,
     this.active,
     this.audioBytes,
     this.audioFileName,
@@ -109,6 +114,7 @@ class SongUpdateEvent extends SongEvent {
     releaseDate,
     artistIds,
     genreIds,
+    tagIds,
     active,
     audioFileName,
     coverFileName,

@@ -13,9 +13,15 @@ import 'package:ondas_web/features/genres/presentation/bloc/genre_bloc.dart';
 import 'package:ondas_web/features/genres/presentation/screens/genre_form_screen.dart';
 import 'package:ondas_web/features/genres/presentation/screens/genres_screen.dart';
 import 'package:ondas_web/features/lyrics/presentation/bloc/lyrics_bloc.dart';
+import 'package:ondas_web/features/playlists/presentation/bloc/playlist_bloc.dart';
+import 'package:ondas_web/features/playlists/presentation/screens/playlist_form_screen.dart';
+import 'package:ondas_web/features/playlists/presentation/screens/playlists_screen.dart';
 import 'package:ondas_web/features/songs/presentation/bloc/song_bloc.dart';
 import 'package:ondas_web/features/songs/presentation/screens/song_form_screen.dart';
 import 'package:ondas_web/features/songs/presentation/screens/songs_screen.dart';
+import 'package:ondas_web/features/tags/presentation/bloc/tag_bloc.dart';
+import 'package:ondas_web/features/tags/presentation/screens/tag_form_screen.dart';
+import 'package:ondas_web/features/tags/presentation/screens/tags_screen.dart';
 import 'package:ondas_web/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:ondas_web/features/auth/presentation/screens/login_screen.dart';
 import 'package:ondas_web/features/dashboard/presentation/bloc/dashboard_bloc.dart';
@@ -132,6 +138,60 @@ GoRouter createRouter() {
                 builder: (context, state) => BlocProvider(
                   create: (_) => sl<GenreBloc>(),
                   child: GenreFormScreen(genreId: state.pathParameters['id']),
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: AppConstants.routeTags,
+            name: 'tags',
+            builder: (context, state) => BlocProvider(
+              create: (_) => sl<TagBloc>(),
+              child: const TagsScreen(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'tagNew',
+                builder: (context, state) => BlocProvider(
+                  create: (_) => sl<TagBloc>(),
+                  child: const TagFormScreen(),
+                ),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                name: 'tagEdit',
+                builder: (context, state) => BlocProvider(
+                  create: (_) => sl<TagBloc>(),
+                  child: TagFormScreen(tagId: state.pathParameters['id']),
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: AppConstants.routePlaylists,
+            name: 'playlists',
+            builder: (context, state) => BlocProvider(
+              create: (_) => sl<PlaylistBloc>(),
+              child: const PlaylistsScreen(),
+            ),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'playlistNew',
+                builder: (context, state) => BlocProvider(
+                  create: (_) => sl<PlaylistBloc>(),
+                  child: const PlaylistFormScreen(),
+                ),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                name: 'playlistEdit',
+                builder: (context, state) => BlocProvider(
+                  create: (_) => sl<PlaylistBloc>(),
+                  child: PlaylistFormScreen(
+                    playlistId: state.pathParameters['id'],
+                  ),
                 ),
               ),
             ],
