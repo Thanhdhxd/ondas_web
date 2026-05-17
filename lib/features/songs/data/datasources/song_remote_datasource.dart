@@ -1,5 +1,6 @@
 import 'package:ondas_web/core/network/api_response.dart';
 import 'package:ondas_web/features/songs/data/models/song_model.dart';
+import 'package:ondas_web/features/tags/data/models/tag_model.dart';
 
 abstract class SongRemoteDataSource {
   Future<PageResultDto<SongModel>> getSongs({
@@ -41,4 +42,11 @@ abstract class SongRemoteDataSource {
   });
 
   Future<void> deleteSong({required String id});
+
+  Future<List<TagModel>> getSongTags({required String songId});
+
+  Future<List<TagModel>> replaceSongTags({
+    required String songId,
+    required List<int> tagIds,
+  });
 }

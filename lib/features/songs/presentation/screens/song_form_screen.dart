@@ -17,8 +17,10 @@ import 'package:ondas_web/features/lyrics/presentation/widgets/lyrics_form_widge
 import 'package:ondas_web/features/songs/domain/entities/song.dart';
 import 'package:ondas_web/features/songs/presentation/bloc/song_bloc.dart';
 import 'package:ondas_web/features/songs/presentation/bloc/song_event.dart';
+import 'package:ondas_web/features/songs/domain/usecases/get_song_tags_usecase.dart';
 import 'package:ondas_web/features/songs/presentation/bloc/song_state.dart';
 import 'package:ondas_web/features/songs/presentation/widgets/song_form_widget.dart';
+import 'package:ondas_web/features/tags/domain/repositories/tag_repository.dart';
 
 class SongFormScreen extends StatefulWidget {
   final String? songId;
@@ -37,7 +39,11 @@ class _SongFormScreenState extends State<SongFormScreen> {
   String? _optionsError;
   List<SongFormOption<String>> _artistOptions = const [];
   List<SongFormOption<int>> _genreOptions = const [];
+  List<SongFormOption<int>> _tagOptions = const [];
   List<SongFormOption<String>> _albumOptions = const [];
+  Set<int>? _initialTagIds;
+  bool _isSongTagsLoading = false;
+  String? _loadedSongTagsForId;
 
   /// Current lyrics data, if any, for the form widget.
   Lyrics? _currentLyrics;
@@ -133,13 +139,57 @@ class _SongFormScreenState extends State<SongFormScreen> {
       },
     );
 
+    final tagsResult = await sl<TagRepository>().getTags(
+      page: 0,
+      size: 200,
+    );
+    final tags = tagsResult.fold<List<SongFormOption<int>>>(
+      (failure) {
+        error ??= failure.message;
+        return const <SongFormOption<int>>[];
+      },
+      (page) => page.items
+          .map(
+            (item) => SongFormOption<int>(
+              value: item.id,
+              label: item.type?.isNotEmpty == true
+                  ? '${item.name} (${item.type})'
+                  : item.name,
+            ),
+          )
+          .toList(),
+    );
+
     if (!mounted) return;
     setState(() {
       _artistOptions = artists;
       _genreOptions = genres;
+      _tagOptions = tags;
       _albumOptions = albums;
       _isOptionsLoading = false;
       _optionsError = error;
+    });
+  }
+
+  Future<void> _loadSongTags(String songId) async {
+    if (_loadedSongTagsForId == songId) return;
+
+    setState(() {
+      _isSongTagsLoading = true;
+    });
+
+    final result = await sl<GetSongTagsUseCase>()(
+      GetSongTagsParams(songId: songId),
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _isSongTagsLoading = false;
+      _loadedSongTagsForId = songId;
+      _initialTagIds = result.fold(
+        (_) => <int>{},
+        (tags) => tags.map((tag) => tag.id).toSet(),
+      );
     });
   }
 
@@ -182,6 +232,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
     String? releaseDate,
     required List<String> artistIds,
     required List<int> genreIds,
+    required List<int> tagIds,
     required List<int> audioBytes,
     required String audioFileName,
     List<int>? coverBytes,
@@ -213,6 +264,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
           releaseDate: releaseDate,
           artistIds: artistIds,
           genreIds: genreIds,
+          tagIds: tagIds,
           audioBytes: hasNewAudio ? audioBytes : null,
           audioFileName: hasNewAudio ? audioFileName : null,
           active: active,
@@ -229,6 +281,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
           releaseDate: releaseDate,
           artistIds: artistIds,
           genreIds: genreIds,
+          tagIds: tagIds,
           audioBytes: audioBytes,
           audioFileName: audioFileName,
           coverBytes: coverBytes,
@@ -248,7 +301,9 @@ class _SongFormScreenState extends State<SongFormScreen> {
       listeners: [
         BlocListener<SongBloc, SongState>(
           listener: (context, state) {
-            if (state is SongOperationSuccess) {
+            if (state is SongDetailLoaded && _songId != null) {
+              _loadSongTags(_songId!);
+            } else if (state is SongOperationSuccess) {
               if (!widget.isEditing && state.song != null) {
                 final draft = _pendingLyricsDraft;
                 if (draft != null) {
@@ -361,12 +416,17 @@ class _SongFormScreenState extends State<SongFormScreen> {
           builder: (context, state) {
             final isOperationLoading =
                 state is SongOperationInProgress || _awaitingLyricsCreate;
-            final isDetailLoading = state is SongDetailLoading;
+            final isDetailLoading =
+                state is SongDetailLoading || _isSongTagsLoading;
 
             Song? initialSong;
             if (state is SongDetailLoaded) {
               initialSong = state.song;
             }
+
+            final formKey = widget.isEditing
+                ? '${initialSong?.id ?? _songId}_tags_${_initialTagIds?.join('-') ?? 'loading'}'
+                : 'new';
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(AppSpacing.xxl),
@@ -400,13 +460,15 @@ class _SongFormScreenState extends State<SongFormScreen> {
                     const Center(child: CircularProgressIndicator())
                   else ...[
                     SongFormWidget(
-                      key: ValueKey(initialSong?.id ?? 'new'),
+                      key: ValueKey(formKey),
                       initialSong: initialSong,
+                      initialTagIds: _initialTagIds,
                       isLoading: isOperationLoading,
                       optionsLoading: _isOptionsLoading,
                       optionsError: _optionsError,
                       artistOptions: _artistOptions,
                       genreOptions: _genreOptions,
+                      tagOptions: _tagOptions,
                       albumOptions: _albumOptions,
                       onReloadOptions: _loadOptions,
                       onAudioMetadata: _handleAudioMetadata,

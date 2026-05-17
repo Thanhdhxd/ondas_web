@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:ondas_web/core/error/failures.dart';
 import 'package:ondas_web/core/network/api_response.dart';
 import 'package:ondas_web/features/songs/domain/entities/song.dart';
+import 'package:ondas_web/features/tags/domain/entities/tag.dart';
 
 abstract class SongRepository {
   Future<Either<Failure, PageResultDto<Song>>> getSongs({
@@ -43,4 +44,11 @@ abstract class SongRepository {
   });
 
   Future<Either<Failure, void>> deleteSong({required String id});
+
+  Future<Either<Failure, List<Tag>>> getSongTags({required String songId});
+
+  Future<Either<Failure, List<Tag>>> replaceSongTags({
+    required String songId,
+    required List<int> tagIds,
+  });
 }

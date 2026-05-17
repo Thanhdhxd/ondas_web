@@ -7,6 +7,7 @@ import 'package:ondas_web/core/network/api_response.dart';
 import 'package:ondas_web/core/network/dio_client.dart';
 import 'package:ondas_web/features/songs/data/datasources/song_remote_datasource.dart';
 import 'package:ondas_web/features/songs/data/models/song_model.dart';
+import 'package:ondas_web/features/tags/data/models/tag_model.dart';
 
 class SongRemoteDataSourceImpl implements SongRemoteDataSource {
   final DioClient _dioClient;
@@ -158,6 +159,54 @@ class SongRemoteDataSourceImpl implements SongRemoteDataSource {
         );
       }
       return SongModel.fromJson(body['data'] as Map<String, dynamic>);
+    } on DioException catch (e) {
+      _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<List<TagModel>> getSongTags({required String songId}) async {
+    try {
+      final response = await _dioClient.dio.get(ApiConstants.songTags(songId));
+      final body = response.data as Map<String, dynamic>;
+      if (body['success'] != true) {
+        throw ServerException(
+          message: body['message'] as String? ?? 'Failed to load song tags',
+          statusCode: response.statusCode,
+        );
+      }
+      final data = body['data'] as List<dynamic>? ?? const [];
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(TagModel.fromJson)
+          .toList();
+    } on DioException catch (e) {
+      _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<List<TagModel>> replaceSongTags({
+    required String songId,
+    required List<int> tagIds,
+  }) async {
+    try {
+      final response = await _dioClient.dio.put(
+        ApiConstants.songTags(songId),
+        data: {'tagIds': tagIds},
+      );
+      final body = response.data as Map<String, dynamic>;
+      if (body['success'] != true) {
+        throw ServerException(
+          message: body['message'] as String? ?? 'Failed to update song tags',
+          statusCode: response.statusCode,
+        );
+      }
+      final data = body['data'] as List<dynamic>? ?? const [];
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(TagModel.fromJson)
+          .toList();
     } on DioException catch (e) {
       _handleDioError(e);
     }

@@ -58,6 +58,10 @@ import 'package:ondas_web/features/songs/domain/usecases/get_songs_usecase.dart'
 import 'package:ondas_web/features/songs/domain/usecases/get_songs_usecase_impl.dart';
 import 'package:ondas_web/features/songs/domain/usecases/update_song_usecase.dart';
 import 'package:ondas_web/features/songs/domain/usecases/update_song_usecase_impl.dart';
+import 'package:ondas_web/features/songs/domain/usecases/get_song_tags_usecase.dart';
+import 'package:ondas_web/features/songs/domain/usecases/get_song_tags_usecase_impl.dart';
+import 'package:ondas_web/features/songs/domain/usecases/replace_song_tags_usecase.dart';
+import 'package:ondas_web/features/songs/domain/usecases/replace_song_tags_usecase_impl.dart';
 import 'package:ondas_web/features/songs/presentation/bloc/song_bloc.dart';
 import 'package:ondas_web/features/albums/data/datasources/album_remote_datasource.dart';
 import 'package:ondas_web/features/albums/data/datasources/album_remote_datasource_impl.dart';
@@ -100,6 +104,16 @@ import 'package:ondas_web/features/lyrics/domain/usecases/get_song_lyrics_usecas
 import 'package:ondas_web/features/lyrics/domain/usecases/update_song_lyrics_usecase.dart';
 import 'package:ondas_web/features/lyrics/domain/usecases/update_song_lyrics_usecase_impl.dart';
 import 'package:ondas_web/features/lyrics/presentation/bloc/lyrics_bloc.dart';
+import 'package:ondas_web/features/playlists/data/datasources/playlist_remote_datasource.dart';
+import 'package:ondas_web/features/playlists/data/datasources/playlist_remote_datasource_impl.dart';
+import 'package:ondas_web/features/playlists/data/repositories/playlist_repository_impl.dart';
+import 'package:ondas_web/features/playlists/domain/repositories/playlist_repository.dart';
+import 'package:ondas_web/features/playlists/presentation/bloc/playlist_bloc.dart';
+import 'package:ondas_web/features/tags/data/datasources/tag_remote_datasource.dart';
+import 'package:ondas_web/features/tags/data/datasources/tag_remote_datasource_impl.dart';
+import 'package:ondas_web/features/tags/data/repositories/tag_repository_impl.dart';
+import 'package:ondas_web/features/tags/domain/repositories/tag_repository.dart';
+import 'package:ondas_web/features/tags/presentation/bloc/tag_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -205,6 +219,26 @@ Future<void> setupDependencies() async {
     ),
   );
 
+  // Tags / Moods Feature
+  sl.registerLazySingleton<TagRemoteDataSource>(
+    () => TagRemoteDataSourceImpl(sl<DioClient>()),
+  );
+  sl.registerLazySingleton<TagRepository>(
+    () => TagRepositoryImpl(sl<TagRemoteDataSource>()),
+  );
+  sl.registerFactory<TagBloc>(() => TagBloc(repository: sl<TagRepository>()));
+
+  // Playlists Feature
+  sl.registerLazySingleton<PlaylistRemoteDataSource>(
+    () => PlaylistRemoteDataSourceImpl(sl<DioClient>()),
+  );
+  sl.registerLazySingleton<PlaylistRepository>(
+    () => PlaylistRepositoryImpl(sl<PlaylistRemoteDataSource>()),
+  );
+  sl.registerFactory<PlaylistBloc>(
+    () => PlaylistBloc(repository: sl<PlaylistRepository>()),
+  );
+
   // ── Songs Feature ──────────────────────────────────────────────────────────
   sl.registerLazySingleton<SongRemoteDataSource>(
     () => SongRemoteDataSourceImpl(sl<DioClient>()),
@@ -227,6 +261,12 @@ Future<void> setupDependencies() async {
   sl.registerLazySingleton<DeleteSongUseCase>(
     () => DeleteSongUseCaseImpl(sl<SongRepository>()),
   );
+  sl.registerLazySingleton<GetSongTagsUseCase>(
+    () => GetSongTagsUseCaseImpl(sl<SongRepository>()),
+  );
+  sl.registerLazySingleton<ReplaceSongTagsUseCase>(
+    () => ReplaceSongTagsUseCaseImpl(sl<SongRepository>()),
+  );
   sl.registerFactory<SongBloc>(
     () => SongBloc(
       getSongsUseCase: sl<GetSongsUseCase>(),
@@ -234,6 +274,7 @@ Future<void> setupDependencies() async {
       createSongUseCase: sl<CreateSongUseCase>(),
       updateSongUseCase: sl<UpdateSongUseCase>(),
       deleteSongUseCase: sl<DeleteSongUseCase>(),
+      replaceSongTagsUseCase: sl<ReplaceSongTagsUseCase>(),
     ),
   );
 
