@@ -4,33 +4,33 @@ import 'package:go_router/go_router.dart';
 import 'package:ondas_web/core/constants/app_constants.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
-import 'package:ondas_web/features/playlists/domain/entities/playlist.dart';
-import 'package:ondas_web/features/playlists/presentation/bloc/playlist_bloc.dart';
-import 'package:ondas_web/features/playlists/presentation/bloc/playlist_event.dart';
-import 'package:ondas_web/features/playlists/presentation/bloc/playlist_state.dart';
-import 'package:ondas_web/features/playlists/presentation/widgets/playlist_form_widget.dart';
-import 'package:ondas_web/features/playlists/presentation/widgets/playlist_songs_section_widget.dart';
+import 'package:ondas_web/features/playlists/domain/entities/system_playlist.dart';
+import 'package:ondas_web/features/playlists/presentation/bloc/system_playlist_bloc.dart';
+import 'package:ondas_web/features/playlists/presentation/bloc/system_playlist_event.dart';
+import 'package:ondas_web/features/playlists/presentation/bloc/system_playlist_state.dart';
+import 'package:ondas_web/features/playlists/presentation/widgets/system_playlist_form_widget.dart';
+import 'package:ondas_web/features/playlists/presentation/widgets/system_playlist_songs_section_widget.dart';
 
-class PlaylistFormScreen extends StatefulWidget {
+class SystemPlaylistFormScreen extends StatefulWidget {
   final String? playlistId;
 
-  const PlaylistFormScreen({super.key, this.playlistId});
+  const SystemPlaylistFormScreen({super.key, this.playlistId});
 
   bool get isEditing => playlistId != null;
 
   @override
-  State<PlaylistFormScreen> createState() => _PlaylistFormScreenState();
+  State<SystemPlaylistFormScreen> createState() => _SystemPlaylistFormScreenState();
 }
 
-class _PlaylistFormScreenState extends State<PlaylistFormScreen> {
-  Playlist? _cachedPlaylist;
+class _SystemPlaylistFormScreenState extends State<SystemPlaylistFormScreen> {
+  SystemPlaylist? _cachedPlaylist;
 
   @override
   void initState() {
     super.initState();
     if (widget.isEditing) {
-      context.read<PlaylistBloc>().add(
-        PlaylistLoadDetailEvent(id: widget.playlistId!),
+      context.read<SystemPlaylistBloc>().add(
+        SystemPlaylistLoadDetailEvent(id: widget.playlistId!),
       );
     }
   }
@@ -38,32 +38,46 @@ class _PlaylistFormScreenState extends State<PlaylistFormScreen> {
   void _submit({
     required String name,
     String? description,
-    required bool isPublic,
+    required bool isActive,
     List<int>? coverBytes,
     String? coverFileName,
   }) {
     if (widget.isEditing) {
-      context.read<PlaylistBloc>().add(
-        PlaylistUpdateEvent(
+      context.read<SystemPlaylistBloc>().add(
+        SystemPlaylistUpdateEvent(
           id: widget.playlistId!,
           name: name,
           description: description,
-          isPublic: isPublic,
+          isActive: isActive,
           coverBytes: coverBytes,
           coverFileName: coverFileName,
         ),
       );
     } else {
-      context.read<PlaylistBloc>().add(
-        PlaylistCreateEvent(
+      context.read<SystemPlaylistBloc>().add(
+        SystemPlaylistCreateEvent(
           name: name,
           description: description,
-          isPublic: isPublic,
+          isActive: isActive,
           coverBytes: coverBytes,
           coverFileName: coverFileName,
         ),
       );
     }
+  }
+
+  void _exitToList({required bool refresh}) {
+    if (refresh) {
+      context.go(
+        '${AppConstants.routePlaylists}?refresh=${DateTime.now().millisecondsSinceEpoch}',
+      );
+      return;
+    }
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+    context.go(AppConstants.routePlaylists);
   }
 
   @override
@@ -74,35 +88,24 @@ class _PlaylistFormScreenState extends State<PlaylistFormScreen> {
         ? AppColors.nearBlack
         : AppColors.darkTextPrimary;
 
-    return BlocListener<PlaylistBloc, PlaylistState>(
+    return BlocListener<SystemPlaylistBloc, SystemPlaylistState>(
       listener: (context, state) {
-        if (state is PlaylistDetailLoaded && state.snackbarMessage != null) {
+        if (state is SystemPlaylistDetailLoaded && state.snackbarMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.snackbarMessage!),
               backgroundColor: AppColors.errorLight,
             ),
           );
-        } else if (state is PlaylistOperationSuccess) {
-          final createdId = state.createdPlaylistId;
-          if (createdId != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.successLight,
-              ),
-            );
-            context.go('${AppConstants.routePlaylists}/$createdId/edit');
-            return;
-          }
+        } else if (state is SystemPlaylistOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
               backgroundColor: AppColors.successLight,
             ),
           );
-          context.pop(true);
-        } else if (state is PlaylistOperationError) {
+          _exitToList(refresh: true);
+        } else if (state is SystemPlaylistOperationError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
@@ -113,16 +116,16 @@ class _PlaylistFormScreenState extends State<PlaylistFormScreen> {
       },
       child: ColoredBox(
         color: bgColor,
-        child: BlocBuilder<PlaylistBloc, PlaylistState>(
+        child: BlocBuilder<SystemPlaylistBloc, SystemPlaylistState>(
           builder: (context, state) {
-            if (state is PlaylistDetailLoaded) {
+            if (state is SystemPlaylistDetailLoaded) {
               _cachedPlaylist = state.playlist;
             }
 
-            final detailState = state is PlaylistDetailLoaded ? state : null;
+            final detailState = state is SystemPlaylistDetailLoaded ? state : null;
             final playlist = detailState?.playlist ?? _cachedPlaylist;
-            final isMetadataLoading = state is PlaylistOperationInProgress;
-            final isDetailLoading = state is PlaylistDetailLoading;
+            final isMetadataLoading = state is SystemPlaylistOperationInProgress;
+            final isDetailLoading = state is SystemPlaylistDetailLoading;
             final isSongsMutating = detailState?.isSongsMutating ?? false;
             final showSongsSection =
                 widget.isEditing && playlist != null && !isDetailLoading;
@@ -136,12 +139,14 @@ class _PlaylistFormScreenState extends State<PlaylistFormScreen> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.arrow_back),
-                        onPressed: () => context.pop(),
+                        onPressed: () => _exitToList(refresh: widget.isEditing),
                         color: textPrimary,
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Text(
-                        widget.isEditing ? 'Sửa Playlist' : 'Thêm Playlist',
+                        widget.isEditing
+                            ? 'Sửa System Playlist'
+                            : 'Thêm System Playlist',
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               color: textPrimary,
@@ -154,7 +159,7 @@ class _PlaylistFormScreenState extends State<PlaylistFormScreen> {
                   if (isDetailLoading)
                     const Center(child: CircularProgressIndicator())
                   else ...[
-                    PlaylistFormWidget(
+                    SystemPlaylistFormWidget(
                       key: ValueKey(playlist?.id ?? 'new'),
                       initialPlaylist: playlist,
                       isLoading: isMetadataLoading,
@@ -162,7 +167,7 @@ class _PlaylistFormScreenState extends State<PlaylistFormScreen> {
                     ),
                     if (showSongsSection) ...[
                       const SizedBox(height: AppSpacing.xxl),
-                      PlaylistSongsSectionWidget(
+                      SystemPlaylistSongsSectionWidget(
                         key: ValueKey('songs_${playlist.id}_${playlist.songs.length}'),
                         playlistId: playlist.id,
                         songs: playlist.songs,

@@ -5,31 +5,29 @@ import 'package:ondas_web/core/constants/api_constants.dart';
 import 'package:ondas_web/core/error/exceptions.dart';
 import 'package:ondas_web/core/network/api_response.dart';
 import 'package:ondas_web/core/network/dio_client.dart';
-import 'package:ondas_web/features/playlists/data/datasources/playlist_remote_datasource.dart';
-import 'package:ondas_web/features/playlists/data/models/playlist_model.dart';
+import 'package:ondas_web/features/playlists/data/datasources/system_playlist_remote_datasource.dart';
+import 'package:ondas_web/features/playlists/data/models/system_playlist_model.dart';
 
-class PlaylistRemoteDataSourceImpl implements PlaylistRemoteDataSource {
+class SystemPlaylistRemoteDataSourceImpl implements SystemPlaylistRemoteDataSource {
   final DioClient _dioClient;
 
-  const PlaylistRemoteDataSourceImpl(this._dioClient);
+  const SystemPlaylistRemoteDataSourceImpl(this._dioClient);
 
   @override
-  Future<PageResultDto<PlaylistModel>> getPlaylists({
+  Future<PageResultDto<SystemPlaylistModel>> getPlaylists({
     required int page,
     required int size,
     String? query,
-    bool? owner,
-    bool? isPublic,
+    bool? isActive,
   }) async {
     try {
       final response = await _dioClient.dio.get(
-        ApiConstants.playlists,
+        ApiConstants.adminSystemPlaylists,
         queryParameters: {
           'page': page,
           'size': size,
           if (query != null && query.trim().isNotEmpty) 'query': query.trim(),
-          if (owner != null) 'owner': owner,
-          if (isPublic != null) 'isPublic': isPublic,
+          if (isActive != null) 'isActive': isActive,
         },
       );
       final body = response.data as Map<String, dynamic>;
@@ -41,7 +39,7 @@ class PlaylistRemoteDataSourceImpl implements PlaylistRemoteDataSource {
       }
       return PageResultDto.fromJson(
         body['data'] as Map<String, dynamic>,
-        PlaylistModel.fromJson,
+        SystemPlaylistModel.fromJson,
       );
     } on DioException catch (e) {
       _handleDioError(e);
@@ -49,9 +47,11 @@ class PlaylistRemoteDataSourceImpl implements PlaylistRemoteDataSource {
   }
 
   @override
-  Future<PlaylistModel> getPlaylist({required String id}) async {
+  Future<SystemPlaylistModel> getPlaylist({required String id}) async {
     try {
-      final response = await _dioClient.dio.get(ApiConstants.playlistById(id));
+      final response = await _dioClient.dio.get(
+        ApiConstants.adminSystemPlaylistById(id),
+      );
       final body = response.data as Map<String, dynamic>;
       if (body['success'] != true) {
         throw ServerException(
@@ -59,28 +59,28 @@ class PlaylistRemoteDataSourceImpl implements PlaylistRemoteDataSource {
           statusCode: response.statusCode,
         );
       }
-      return PlaylistModel.fromJson(body['data'] as Map<String, dynamic>);
+      return SystemPlaylistModel.fromJson(body['data'] as Map<String, dynamic>);
     } on DioException catch (e) {
       _handleDioError(e);
     }
   }
 
   @override
-  Future<PlaylistModel> createPlaylist({
+  Future<SystemPlaylistModel> createPlaylist({
     required String name,
     String? description,
-    required bool isPublic,
+    required bool isActive,
     List<int>? coverBytes,
     String? coverFileName,
   }) async {
     try {
       final response = await _dioClient.dio.post(
-        ApiConstants.playlists,
+        ApiConstants.adminSystemPlaylists,
         data: _buildFormData(
           requestJson: {
             'name': name,
             if (description != null) 'description': description,
-            'isPublic': isPublic,
+            'isActive': isActive,
           },
           fileBytes: coverBytes,
           fileName: coverFileName,
@@ -93,29 +93,29 @@ class PlaylistRemoteDataSourceImpl implements PlaylistRemoteDataSource {
           statusCode: response.statusCode,
         );
       }
-      return PlaylistModel.fromJson(body['data'] as Map<String, dynamic>);
+      return SystemPlaylistModel.fromJson(body['data'] as Map<String, dynamic>);
     } on DioException catch (e) {
       _handleDioError(e);
     }
   }
 
   @override
-  Future<PlaylistModel> updatePlaylist({
+  Future<SystemPlaylistModel> updatePlaylist({
     required String id,
     String? name,
     String? description,
-    bool? isPublic,
+    bool? isActive,
     List<int>? coverBytes,
     String? coverFileName,
   }) async {
     try {
       final response = await _dioClient.dio.put(
-        ApiConstants.playlistById(id),
+        ApiConstants.adminSystemPlaylistById(id),
         data: _buildFormData(
           requestJson: {
             if (name != null) 'name': name,
             if (description != null) 'description': description,
-            if (isPublic != null) 'isPublic': isPublic,
+            if (isActive != null) 'isActive': isActive,
           },
           fileBytes: coverBytes,
           fileName: coverFileName,
@@ -128,20 +128,20 @@ class PlaylistRemoteDataSourceImpl implements PlaylistRemoteDataSource {
           statusCode: response.statusCode,
         );
       }
-      return PlaylistModel.fromJson(body['data'] as Map<String, dynamic>);
+      return SystemPlaylistModel.fromJson(body['data'] as Map<String, dynamic>);
     } on DioException catch (e) {
       _handleDioError(e);
     }
   }
 
   @override
-  Future<PlaylistModel> addSongToPlaylist({
+  Future<SystemPlaylistModel> addSongToPlaylist({
     required String playlistId,
     required String songId,
   }) async {
     try {
       final response = await _dioClient.dio.post(
-        ApiConstants.playlistSongs(playlistId),
+        ApiConstants.adminSystemPlaylistSongs(playlistId),
         data: {'songId': songId},
       );
       return _parsePlaylistResponse(response);
@@ -151,13 +151,13 @@ class PlaylistRemoteDataSourceImpl implements PlaylistRemoteDataSource {
   }
 
   @override
-  Future<PlaylistModel> removeSongFromPlaylist({
+  Future<SystemPlaylistModel> removeSongFromPlaylist({
     required String playlistId,
     required String songId,
   }) async {
     try {
       final response = await _dioClient.dio.delete(
-        ApiConstants.playlistSongById(playlistId, songId),
+        ApiConstants.adminSystemPlaylistSongById(playlistId, songId),
       );
       return _parsePlaylistResponse(response);
     } on DioException catch (e) {
@@ -166,13 +166,13 @@ class PlaylistRemoteDataSourceImpl implements PlaylistRemoteDataSource {
   }
 
   @override
-  Future<PlaylistModel> reorderPlaylistSongs({
+  Future<SystemPlaylistModel> reorderPlaylistSongs({
     required String playlistId,
     required List<String> songIds,
   }) async {
     try {
       final response = await _dioClient.dio.put(
-        ApiConstants.playlistSongsReorder(playlistId),
+        ApiConstants.adminSystemPlaylistSongsReorder(playlistId),
         data: {'songIds': songIds},
       );
       return _parsePlaylistResponse(response);
@@ -181,7 +181,7 @@ class PlaylistRemoteDataSourceImpl implements PlaylistRemoteDataSource {
     }
   }
 
-  PlaylistModel _parsePlaylistResponse(Response<dynamic> response) {
+  SystemPlaylistModel _parsePlaylistResponse(Response<dynamic> response) {
     final body = response.data as Map<String, dynamic>;
     if (body['success'] != true) {
       throw ServerException(
@@ -189,14 +189,14 @@ class PlaylistRemoteDataSourceImpl implements PlaylistRemoteDataSource {
         statusCode: response.statusCode,
       );
     }
-    return PlaylistModel.fromJson(body['data'] as Map<String, dynamic>);
+    return SystemPlaylistModel.fromJson(body['data'] as Map<String, dynamic>);
   }
 
   @override
   Future<void> deletePlaylist({required String id}) async {
     try {
       final response = await _dioClient.dio.delete(
-        ApiConstants.playlistById(id),
+        ApiConstants.adminSystemPlaylistById(id),
       );
       final body = response.data as Map<String, dynamic>;
       if (body['success'] != true) {
@@ -241,3 +241,4 @@ class PlaylistRemoteDataSourceImpl implements PlaylistRemoteDataSource {
     throw ServerException(message: message, statusCode: statusCode);
   }
 }
+

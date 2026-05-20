@@ -5,20 +5,20 @@ import 'package:ondas_web/core/constants/app_constants.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
-import 'package:ondas_web/features/playlists/domain/entities/playlist.dart';
-import 'package:ondas_web/features/playlists/presentation/bloc/playlist_bloc.dart';
-import 'package:ondas_web/features/playlists/presentation/bloc/playlist_event.dart';
-import 'package:ondas_web/features/playlists/presentation/bloc/playlist_state.dart';
-import 'package:ondas_web/features/playlists/presentation/widgets/playlist_table_widget.dart';
+import 'package:ondas_web/features/playlists/domain/entities/system_playlist.dart';
+import 'package:ondas_web/features/playlists/presentation/bloc/system_playlist_bloc.dart';
+import 'package:ondas_web/features/playlists/presentation/bloc/system_playlist_event.dart';
+import 'package:ondas_web/features/playlists/presentation/bloc/system_playlist_state.dart';
+import 'package:ondas_web/features/playlists/presentation/widgets/system_playlist_table_widget.dart';
 
-class PlaylistsScreen extends StatefulWidget {
-  const PlaylistsScreen({super.key});
+class SystemPlaylistsScreen extends StatefulWidget {
+  const SystemPlaylistsScreen({super.key});
 
   @override
-  State<PlaylistsScreen> createState() => _PlaylistsScreenState();
+  State<SystemPlaylistsScreen> createState() => _SystemPlaylistsScreenState();
 }
 
-class _PlaylistsScreenState extends State<PlaylistsScreen> {
+class _SystemPlaylistsScreenState extends State<SystemPlaylistsScreen> {
   final _searchController = TextEditingController();
   int _currentPage = 0;
   static const int _pageSize = AppConstants.defaultPageSize;
@@ -37,12 +37,11 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
 
   void _load() {
     final query = _searchController.text.trim();
-    context.read<PlaylistBloc>().add(
-      PlaylistLoadListEvent(
+    context.read<SystemPlaylistBloc>().add(
+      SystemPlaylistLoadListEvent(
         page: _currentPage,
         size: _pageSize,
         query: query.isEmpty ? null : query,
-        owner: true,
       ),
     );
   }
@@ -54,14 +53,14 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
     if (result == true && mounted) _load();
   }
 
-  Future<void> _onEdit(Playlist playlist) async {
+  Future<void> _onEdit(SystemPlaylist playlist) async {
     final result = await context.push<bool>(
       '${AppConstants.routePlaylists}/${playlist.id}/edit',
     );
     if (result == true && mounted) _load();
   }
 
-  void _onDelete(Playlist playlist) {
+  void _onDelete(SystemPlaylist playlist) {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -79,8 +78,8 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
             ),
             onPressed: () {
               Navigator.of(dialogContext).pop();
-              context.read<PlaylistBloc>().add(
-                PlaylistDeleteEvent(id: playlist.id),
+              context.read<SystemPlaylistBloc>().add(
+                SystemPlaylistDeleteEvent(id: playlist.id),
               );
             },
             child: const Text('Xóa'),
@@ -92,9 +91,9 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<PlaylistBloc, PlaylistState>(
+    return BlocListener<SystemPlaylistBloc, SystemPlaylistState>(
       listener: (context, state) {
-        if (state is PlaylistOperationSuccess) {
+        if (state is SystemPlaylistOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
@@ -102,11 +101,11 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
             ),
           );
           _load();
-        } else if (state is PlaylistOperationError ||
-            state is PlaylistListError) {
-          final message = state is PlaylistOperationError
+        } else if (state is SystemPlaylistOperationError ||
+            state is SystemPlaylistListError) {
+          final message = state is SystemPlaylistOperationError
               ? state.message
-              : (state as PlaylistListError).message;
+              : (state as SystemPlaylistListError).message;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(message),
@@ -115,7 +114,7 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
           );
         }
       },
-      child: _PlaylistsContent(
+      child: _SystemPlaylistsContent(
         searchController: _searchController,
         currentPage: _currentPage,
         onSearch: (_) {
@@ -134,16 +133,16 @@ class _PlaylistsScreenState extends State<PlaylistsScreen> {
   }
 }
 
-class _PlaylistsContent extends StatelessWidget {
+class _SystemPlaylistsContent extends StatelessWidget {
   final TextEditingController searchController;
   final int currentPage;
   final void Function(String) onSearch;
   final void Function(int) onPageChanged;
   final VoidCallback onAdd;
-  final void Function(Playlist) onEdit;
-  final void Function(Playlist) onDelete;
+  final void Function(SystemPlaylist) onEdit;
+  final void Function(SystemPlaylist) onDelete;
 
-  const _PlaylistsContent({
+  const _SystemPlaylistsContent({
     required this.searchController,
     required this.currentPage,
     required this.onSearch,
@@ -165,18 +164,18 @@ class _PlaylistsContent extends StatelessWidget {
         : AppColors.darkTextSecondary;
     final borderColor = isLight ? AppColors.lightGray : AppColors.darkBorder;
 
-    return BlocBuilder<PlaylistBloc, PlaylistState>(
+    return BlocBuilder<SystemPlaylistBloc, SystemPlaylistState>(
       builder: (context, state) {
-        final playlists = state is PlaylistListLoaded
+        final playlists = state is SystemPlaylistListLoaded
             ? state.playlists
-            : <Playlist>[];
-        final totalPages = state is PlaylistListLoaded ? state.totalPages : 1;
-        final totalElements = state is PlaylistListLoaded
+            : <SystemPlaylist>[];
+        final totalPages = state is SystemPlaylistListLoaded ? state.totalPages : 1;
+        final totalElements = state is SystemPlaylistListLoaded
             ? state.totalElements
             : 0;
         final isLoading =
-            state is PlaylistListLoading ||
-            state is PlaylistOperationInProgress;
+            state is SystemPlaylistListLoading ||
+            state is SystemPlaylistOperationInProgress;
 
         return Container(
           color: bgColor,
@@ -190,7 +189,7 @@ class _PlaylistsContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Playlists',
+                        'System Playlists',
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               color: textPrimary,
@@ -199,7 +198,7 @@ class _PlaylistsContent extends StatelessWidget {
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        '$totalElements playlists',
+                        '$totalElements system playlists',
                         style: TextStyle(color: textSecondary),
                       ),
                     ],
@@ -208,7 +207,7 @@ class _PlaylistsContent extends StatelessWidget {
                   ElevatedButton.icon(
                     onPressed: onAdd,
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Thêm playlist'),
+                    label: const Text('Thêm system playlist'),
                   ),
                 ],
               ),
@@ -221,7 +220,7 @@ class _PlaylistsContent extends StatelessWidget {
                       controller: searchController,
                       style: TextStyle(fontSize: 14, color: textPrimary),
                       decoration: InputDecoration(
-                        hintText: 'Tim playlist...',
+                        hintText: 'Tìm system playlist...',
                         prefixIcon: const Icon(Icons.search, size: 18),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -240,7 +239,7 @@ class _PlaylistsContent extends StatelessWidget {
               Expanded(
                 child: isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : PlaylistTableWidget(
+                    : SystemPlaylistTableWidget(
                         playlists: playlists,
                         onEdit: onEdit,
                         onDelete: onDelete,

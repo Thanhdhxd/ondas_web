@@ -6,21 +6,21 @@ import 'package:flutter/material.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
-import 'package:ondas_web/features/playlists/domain/entities/playlist.dart';
+import 'package:ondas_web/features/playlists/domain/entities/system_playlist.dart';
 
-class PlaylistFormWidget extends StatefulWidget {
-  final Playlist? initialPlaylist;
+class SystemPlaylistFormWidget extends StatefulWidget {
+  final SystemPlaylist? initialPlaylist;
   final bool isLoading;
   final void Function({
     required String name,
     String? description,
-    required bool isPublic,
+    required bool isActive,
     List<int>? coverBytes,
     String? coverFileName,
   })
   onSubmit;
 
-  const PlaylistFormWidget({
+  const SystemPlaylistFormWidget({
     super.key,
     this.initialPlaylist,
     required this.isLoading,
@@ -28,14 +28,14 @@ class PlaylistFormWidget extends StatefulWidget {
   });
 
   @override
-  State<PlaylistFormWidget> createState() => _PlaylistFormWidgetState();
+  State<SystemPlaylistFormWidget> createState() => _SystemPlaylistFormWidgetState();
 }
 
-class _PlaylistFormWidgetState extends State<PlaylistFormWidget> {
+class _SystemPlaylistFormWidgetState extends State<SystemPlaylistFormWidget> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameCtrl;
   late final TextEditingController _descriptionCtrl;
-  late bool _isPublic;
+  late bool _isActive;
   List<int>? _coverBytes;
   String? _coverFileName;
   Uint8List? _coverPreview;
@@ -47,7 +47,7 @@ class _PlaylistFormWidgetState extends State<PlaylistFormWidget> {
     _descriptionCtrl = TextEditingController(
       text: widget.initialPlaylist?.description ?? '',
     );
-    _isPublic = widget.initialPlaylist?.isPublic ?? true;
+    _isActive = widget.initialPlaylist?.isActive ?? true;
   }
 
   @override
@@ -84,7 +84,7 @@ class _PlaylistFormWidgetState extends State<PlaylistFormWidget> {
       description: _descriptionCtrl.text.trim().isEmpty
           ? null
           : _descriptionCtrl.text.trim(),
-      isPublic: false,
+      isActive: _isActive,
       coverBytes: _coverBytes,
       coverFileName: _coverFileName,
     );
@@ -146,6 +146,77 @@ class _PlaylistFormWidgetState extends State<PlaylistFormWidget> {
                     controller: _descriptionCtrl,
                     textColor: textPrimary,
                     borderColor: borderColor,
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.darkSurfaceElevated.withValues(
+                        alpha: isLight ? 0.06 : 0.24,
+                      ),
+                      borderRadius: BorderRadius.circular(AppRadius.container),
+                      border: Border.all(color: borderColor),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                      vertical: AppSpacing.md,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: _isActive
+                                ? AppColors.successLight.withValues(alpha: 0.18)
+                                : AppColors.darkSurfaceElevated.withValues(
+                                    alpha: 0.28,
+                                  ),
+                            borderRadius:
+                                BorderRadius.circular(AppRadius.container),
+                          ),
+                          child: Icon(
+                            _isActive
+                                ? Icons.public_rounded
+                                : Icons.lock_outline_rounded,
+                            size: 18,
+                            color: _isActive
+                                ? AppColors.successLight
+                                : textSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _isActive ? 'Đang hoạt động' : 'Đã ẩn',
+                                style: TextStyle(
+                                  color: textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _isActive
+                                    ? 'Playlist xuất hiện cho user.'
+                                    : 'Playlist bị ẩn với user.',
+                                style: TextStyle(
+                                  color: textSecondary,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Switch.adaptive(
+                          value: _isActive,
+                          onChanged: widget.isLoading
+                              ? null
+                              : (value) => setState(() => _isActive = value),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xxl),
                   Row(

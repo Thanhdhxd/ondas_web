@@ -1,25 +1,23 @@
 import 'package:equatable/equatable.dart';
-import 'package:ondas_web/features/playlists/domain/entities/playlist_song.dart';
+import 'package:ondas_web/features/playlists/domain/entities/system_playlist_song.dart';
 
-class Playlist extends Equatable {
+class SystemPlaylist extends Equatable {
   final String id;
-  final String? userId;
   final String name;
   final String? description;
   final String? coverUrl;
-  final bool isPublic;
+  final bool isActive;
   final int totalSongs;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-  final List<PlaylistSong> songs;
+  final List<SystemPlaylistSong> songs;
 
-  const Playlist({
+  const SystemPlaylist({
     required this.id,
-    this.userId,
     required this.name,
     this.description,
     this.coverUrl,
-    required this.isPublic,
+    required this.isActive,
     required this.totalSongs,
     this.createdAt,
     this.updatedAt,
@@ -29,11 +27,10 @@ class Playlist extends Equatable {
   @override
   List<Object?> get props => [
     id,
-    userId,
     name,
     description,
     coverUrl,
-    isPublic,
+    isActive,
     totalSongs,
     createdAt,
     updatedAt,

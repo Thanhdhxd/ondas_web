@@ -26,6 +26,6 @@ abstract class AppConstants {
   static const String routeAlbums = '/admin/albums';
   static const String routeGenres = '/admin/genres';
   static const String routeTags = '/admin/tags';
-  static const String routePlaylists = '/admin/playlists';
+  static const String routePlaylists = '/admin/system-playlists';
   static const String routeUsers = '/admin/users';
 }

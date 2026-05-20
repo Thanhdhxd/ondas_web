@@ -1,13 +1,13 @@
 import 'package:equatable/equatable.dart';
 
-class PlaylistSong extends Equatable {
+class SystemPlaylistSong extends Equatable {
   final int position;
   final String id;
   final String title;
   final String? coverUrl;
   final int? durationSeconds;
 
-  const PlaylistSong({
+  const SystemPlaylistSong({
     required this.position,
     required this.id,
     required this.title,

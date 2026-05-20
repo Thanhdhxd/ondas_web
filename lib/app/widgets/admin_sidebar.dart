@@ -53,7 +53,7 @@ const kAdminNavItems = [
     route: AppConstants.routeTags,
   ),
   AdminNavItem(
-    label: 'Playlists',
+    label: 'System Playlists',
     icon: Icons.queue_music_outlined,
     route: AppConstants.routePlaylists,
   ),

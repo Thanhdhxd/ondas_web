@@ -104,11 +104,11 @@ import 'package:ondas_web/features/lyrics/domain/usecases/get_song_lyrics_usecas
 import 'package:ondas_web/features/lyrics/domain/usecases/update_song_lyrics_usecase.dart';
 import 'package:ondas_web/features/lyrics/domain/usecases/update_song_lyrics_usecase_impl.dart';
 import 'package:ondas_web/features/lyrics/presentation/bloc/lyrics_bloc.dart';
-import 'package:ondas_web/features/playlists/data/datasources/playlist_remote_datasource.dart';
-import 'package:ondas_web/features/playlists/data/datasources/playlist_remote_datasource_impl.dart';
-import 'package:ondas_web/features/playlists/data/repositories/playlist_repository_impl.dart';
-import 'package:ondas_web/features/playlists/domain/repositories/playlist_repository.dart';
-import 'package:ondas_web/features/playlists/presentation/bloc/playlist_bloc.dart';
+import 'package:ondas_web/features/playlists/data/datasources/system_playlist_remote_datasource.dart';
+import 'package:ondas_web/features/playlists/data/datasources/system_playlist_remote_datasource_impl.dart';
+import 'package:ondas_web/features/playlists/data/repositories/system_playlist_repository_impl.dart';
+import 'package:ondas_web/features/playlists/domain/repositories/system_playlist_repository.dart';
+import 'package:ondas_web/features/playlists/presentation/bloc/system_playlist_bloc.dart';
 import 'package:ondas_web/features/tags/data/datasources/tag_remote_datasource.dart';
 import 'package:ondas_web/features/tags/data/datasources/tag_remote_datasource_impl.dart';
 import 'package:ondas_web/features/tags/data/repositories/tag_repository_impl.dart';
@@ -228,15 +228,15 @@ Future<void> setupDependencies() async {
   );
   sl.registerFactory<TagBloc>(() => TagBloc(repository: sl<TagRepository>()));
 
-  // Playlists Feature
-  sl.registerLazySingleton<PlaylistRemoteDataSource>(
-    () => PlaylistRemoteDataSourceImpl(sl<DioClient>()),
+  // System Playlists Feature
+  sl.registerLazySingleton<SystemPlaylistRemoteDataSource>(
+    () => SystemPlaylistRemoteDataSourceImpl(sl<DioClient>()),
   );
-  sl.registerLazySingleton<PlaylistRepository>(
-    () => PlaylistRepositoryImpl(sl<PlaylistRemoteDataSource>()),
+  sl.registerLazySingleton<SystemPlaylistRepository>(
+    () => SystemPlaylistRepositoryImpl(sl<SystemPlaylistRemoteDataSource>()),
   );
-  sl.registerFactory<PlaylistBloc>(
-    () => PlaylistBloc(repository: sl<PlaylistRepository>()),
+  sl.registerFactory<SystemPlaylistBloc>(
+    () => SystemPlaylistBloc(repository: sl<SystemPlaylistRepository>()),
   );
 
   // ── Songs Feature ──────────────────────────────────────────────────────────
