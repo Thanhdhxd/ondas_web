@@ -44,6 +44,15 @@ abstract class ApiConstants {
       '/api/playlists/$id/songs/$songId';
   static String playlistSongsReorder(String id) =>
       '/api/playlists/$id/songs/reorder';
+  static const String adminSystemPlaylists = '/api/admin/system-playlists';
+  static String adminSystemPlaylistById(String id) =>
+      '/api/admin/system-playlists/$id';
+  static String adminSystemPlaylistSongs(String id) =>
+      '/api/admin/system-playlists/$id/songs';
+  static String adminSystemPlaylistSongById(String id, String songId) =>
+      '/api/admin/system-playlists/$id/songs/$songId';
+  static String adminSystemPlaylistSongsReorder(String id) =>
+      '/api/admin/system-playlists/$id/songs/reorder';
 
   // Admin users
   static const String adminUsers = '/api/admin/users';

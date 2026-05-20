@@ -1,48 +1,48 @@
 import 'package:ondas_web/core/network/api_response.dart';
-import 'package:ondas_web/features/playlists/data/models/playlist_model.dart';
+import 'package:ondas_web/features/playlists/data/models/system_playlist_model.dart';
 
-abstract class PlaylistRemoteDataSource {
-  Future<PageResultDto<PlaylistModel>> getPlaylists({
+abstract class SystemPlaylistRemoteDataSource {
+  Future<PageResultDto<SystemPlaylistModel>> getPlaylists({
     required int page,
     required int size,
     String? query,
-    bool? owner,
-    bool? isPublic,
+    bool? isActive,
   });
 
-  Future<PlaylistModel> getPlaylist({required String id});
+  Future<SystemPlaylistModel> getPlaylist({required String id});
 
-  Future<PlaylistModel> createPlaylist({
+  Future<SystemPlaylistModel> createPlaylist({
     required String name,
     String? description,
-    required bool isPublic,
+    required bool isActive,
     List<int>? coverBytes,
     String? coverFileName,
   });
 
-  Future<PlaylistModel> updatePlaylist({
+  Future<SystemPlaylistModel> updatePlaylist({
     required String id,
     String? name,
     String? description,
-    bool? isPublic,
+    bool? isActive,
     List<int>? coverBytes,
     String? coverFileName,
   });
 
   Future<void> deletePlaylist({required String id});
 
-  Future<PlaylistModel> addSongToPlaylist({
+  Future<SystemPlaylistModel> addSongToPlaylist({
     required String playlistId,
     required String songId,
   });
 
-  Future<PlaylistModel> removeSongFromPlaylist({
+  Future<SystemPlaylistModel> removeSongFromPlaylist({
     required String playlistId,
     required String songId,
   });
 
-  Future<PlaylistModel> reorderPlaylistSongs({
+  Future<SystemPlaylistModel> reorderPlaylistSongs({
     required String playlistId,
     required List<String> songIds,
   });
 }
+

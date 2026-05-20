@@ -4,17 +4,17 @@ import 'package:ondas_web/core/di/injection.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
-import 'package:ondas_web/features/playlists/domain/entities/playlist_song.dart';
-import 'package:ondas_web/features/playlists/presentation/bloc/playlist_bloc.dart';
-import 'package:ondas_web/features/playlists/presentation/bloc/playlist_event.dart';
+import 'package:ondas_web/features/playlists/domain/entities/system_playlist_song.dart';
+import 'package:ondas_web/features/playlists/presentation/bloc/system_playlist_bloc.dart';
+import 'package:ondas_web/features/playlists/presentation/bloc/system_playlist_event.dart';
 import 'package:ondas_web/features/songs/domain/usecases/get_songs_usecase.dart';
 
-class PlaylistSongsSectionWidget extends StatelessWidget {
+class SystemPlaylistSongsSectionWidget extends StatelessWidget {
   final String playlistId;
-  final List<PlaylistSong> songs;
+  final List<SystemPlaylistSong> songs;
   final bool isMutating;
 
-  const PlaylistSongsSectionWidget({
+  const SystemPlaylistSongsSectionWidget({
     super.key,
     required this.playlistId,
     required this.songs,
@@ -35,18 +35,18 @@ class PlaylistSongsSectionWidget extends StatelessWidget {
       builder: (_) => _AddSongDialog(existingSongIds: existingIds),
     );
     if (picked == null || !context.mounted) return;
-    context.read<PlaylistBloc>().add(
-      PlaylistAddSongEvent(playlistId: playlistId, songId: picked),
+    context.read<SystemPlaylistBloc>().add(
+      SystemPlaylistAddSongEvent(playlistId: playlistId, songId: picked),
     );
   }
 
   void _onReorder(BuildContext context, int oldIndex, int newIndex) {
     if (oldIndex < newIndex) newIndex -= 1;
-    final reordered = List<PlaylistSong>.from(songs);
+    final reordered = List<SystemPlaylistSong>.from(songs);
     final item = reordered.removeAt(oldIndex);
     reordered.insert(newIndex, item);
-    context.read<PlaylistBloc>().add(
-      PlaylistReorderSongsEvent(
+    context.read<SystemPlaylistBloc>().add(
+      SystemPlaylistReorderSongsEvent(
         playlistId: playlistId,
         songIds: reordered.map((s) => s.id).toList(),
       ),
@@ -54,8 +54,8 @@ class PlaylistSongsSectionWidget extends StatelessWidget {
   }
 
   void _onRemove(BuildContext context, String songId) {
-    context.read<PlaylistBloc>().add(
-      PlaylistRemoveSongEvent(playlistId: playlistId, songId: songId),
+    context.read<SystemPlaylistBloc>().add(
+      SystemPlaylistRemoveSongEvent(playlistId: playlistId, songId: songId),
     );
   }
 
@@ -162,7 +162,7 @@ class PlaylistSongsSectionWidget extends StatelessWidget {
 
 class _SongRow extends StatelessWidget {
   final int index;
-  final PlaylistSong song;
+  final SystemPlaylistSong song;
   final String durationLabel;
   final Color textPrimary;
   final Color textSecondary;

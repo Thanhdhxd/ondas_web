@@ -1,94 +1,92 @@
 import 'package:equatable/equatable.dart';
 
-abstract class PlaylistEvent extends Equatable {
-  const PlaylistEvent();
+abstract class SystemPlaylistEvent extends Equatable {
+  const SystemPlaylistEvent();
 
   @override
   List<Object?> get props => [];
 }
 
-class PlaylistLoadListEvent extends PlaylistEvent {
+class SystemPlaylistLoadListEvent extends SystemPlaylistEvent {
   final int page;
   final int size;
   final String? query;
-  final bool? owner;
-  final bool? isPublic;
+  final bool? isActive;
 
-  const PlaylistLoadListEvent({
+  const SystemPlaylistLoadListEvent({
     required this.page,
     required this.size,
     this.query,
-    this.owner,
-    this.isPublic,
+    this.isActive,
   });
 
   @override
-  List<Object?> get props => [page, size, query, owner, isPublic];
+  List<Object?> get props => [page, size, query, isActive];
 }
 
-class PlaylistLoadDetailEvent extends PlaylistEvent {
+class SystemPlaylistLoadDetailEvent extends SystemPlaylistEvent {
   final String id;
 
-  const PlaylistLoadDetailEvent({required this.id});
+  const SystemPlaylistLoadDetailEvent({required this.id});
 
   @override
   List<Object?> get props => [id];
 }
 
-class PlaylistCreateEvent extends PlaylistEvent {
+class SystemPlaylistCreateEvent extends SystemPlaylistEvent {
   final String name;
   final String? description;
-  final bool isPublic;
+  final bool isActive;
   final List<int>? coverBytes;
   final String? coverFileName;
 
-  const PlaylistCreateEvent({
+  const SystemPlaylistCreateEvent({
     required this.name,
     this.description,
-    required this.isPublic,
+    required this.isActive,
     this.coverBytes,
     this.coverFileName,
   });
 
   @override
-  List<Object?> get props => [name, description, isPublic, coverFileName];
+  List<Object?> get props => [name, description, isActive, coverFileName];
 }
 
-class PlaylistUpdateEvent extends PlaylistEvent {
+class SystemPlaylistUpdateEvent extends SystemPlaylistEvent {
   final String id;
   final String name;
   final String? description;
-  final bool isPublic;
+  final bool isActive;
   final List<int>? coverBytes;
   final String? coverFileName;
 
-  const PlaylistUpdateEvent({
+  const SystemPlaylistUpdateEvent({
     required this.id,
     required this.name,
     this.description,
-    required this.isPublic,
+    required this.isActive,
     this.coverBytes,
     this.coverFileName,
   });
 
   @override
-  List<Object?> get props => [id, name, description, isPublic, coverFileName];
+  List<Object?> get props => [id, name, description, isActive, coverFileName];
 }
 
-class PlaylistDeleteEvent extends PlaylistEvent {
+class SystemPlaylistDeleteEvent extends SystemPlaylistEvent {
   final String id;
 
-  const PlaylistDeleteEvent({required this.id});
+  const SystemPlaylistDeleteEvent({required this.id});
 
   @override
   List<Object?> get props => [id];
 }
 
-class PlaylistAddSongEvent extends PlaylistEvent {
+class SystemPlaylistAddSongEvent extends SystemPlaylistEvent {
   final String playlistId;
   final String songId;
 
-  const PlaylistAddSongEvent({
+  const SystemPlaylistAddSongEvent({
     required this.playlistId,
     required this.songId,
   });
@@ -97,11 +95,11 @@ class PlaylistAddSongEvent extends PlaylistEvent {
   List<Object?> get props => [playlistId, songId];
 }
 
-class PlaylistRemoveSongEvent extends PlaylistEvent {
+class SystemPlaylistRemoveSongEvent extends SystemPlaylistEvent {
   final String playlistId;
   final String songId;
 
-  const PlaylistRemoveSongEvent({
+  const SystemPlaylistRemoveSongEvent({
     required this.playlistId,
     required this.songId,
   });
@@ -110,11 +108,11 @@ class PlaylistRemoveSongEvent extends PlaylistEvent {
   List<Object?> get props => [playlistId, songId];
 }
 
-class PlaylistReorderSongsEvent extends PlaylistEvent {
+class SystemPlaylistReorderSongsEvent extends SystemPlaylistEvent {
   final String playlistId;
   final List<String> songIds;
 
-  const PlaylistReorderSongsEvent({
+  const SystemPlaylistReorderSongsEvent({
     required this.playlistId,
     required this.songIds,
   });

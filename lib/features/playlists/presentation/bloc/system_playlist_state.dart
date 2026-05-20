@@ -1,28 +1,28 @@
 import 'package:equatable/equatable.dart';
-import 'package:ondas_web/features/playlists/domain/entities/playlist.dart';
+import 'package:ondas_web/features/playlists/domain/entities/system_playlist.dart';
 
-abstract class PlaylistState extends Equatable {
-  const PlaylistState();
+abstract class SystemPlaylistState extends Equatable {
+  const SystemPlaylistState();
 
   @override
   List<Object?> get props => [];
 }
 
-class PlaylistInitial extends PlaylistState {
-  const PlaylistInitial();
+class SystemPlaylistInitial extends SystemPlaylistState {
+  const SystemPlaylistInitial();
 }
 
-class PlaylistListLoading extends PlaylistState {
-  const PlaylistListLoading();
+class SystemPlaylistListLoading extends SystemPlaylistState {
+  const SystemPlaylistListLoading();
 }
 
-class PlaylistListLoaded extends PlaylistState {
-  final List<Playlist> playlists;
+class SystemPlaylistListLoaded extends SystemPlaylistState {
+  final List<SystemPlaylist> playlists;
   final int page;
   final int totalPages;
   final int totalElements;
 
-  const PlaylistListLoaded({
+  const SystemPlaylistListLoaded({
     required this.playlists,
     required this.page,
     required this.totalPages,
@@ -33,37 +33,37 @@ class PlaylistListLoaded extends PlaylistState {
   List<Object?> get props => [playlists, page, totalPages, totalElements];
 }
 
-class PlaylistListError extends PlaylistState {
+class SystemPlaylistListError extends SystemPlaylistState {
   final String message;
 
-  const PlaylistListError({required this.message});
+  const SystemPlaylistListError({required this.message});
 
   @override
   List<Object?> get props => [message];
 }
 
-class PlaylistDetailLoading extends PlaylistState {
-  const PlaylistDetailLoading();
+class SystemPlaylistDetailLoading extends SystemPlaylistState {
+  const SystemPlaylistDetailLoading();
 }
 
-class PlaylistDetailLoaded extends PlaylistState {
-  final Playlist playlist;
+class SystemPlaylistDetailLoaded extends SystemPlaylistState {
+  final SystemPlaylist playlist;
   final bool isSongsMutating;
   final String? snackbarMessage;
 
-  const PlaylistDetailLoaded({
+  const SystemPlaylistDetailLoaded({
     required this.playlist,
     this.isSongsMutating = false,
     this.snackbarMessage,
   });
 
-  PlaylistDetailLoaded copyWith({
-    Playlist? playlist,
+  SystemPlaylistDetailLoaded copyWith({
+    SystemPlaylist? playlist,
     bool? isSongsMutating,
     String? snackbarMessage,
     bool clearSnackbar = false,
   }) {
-    return PlaylistDetailLoaded(
+    return SystemPlaylistDetailLoaded(
       playlist: playlist ?? this.playlist,
       isSongsMutating: isSongsMutating ?? this.isSongsMutating,
       snackbarMessage: clearSnackbar
@@ -76,15 +76,15 @@ class PlaylistDetailLoaded extends PlaylistState {
   List<Object?> get props => [playlist, isSongsMutating, snackbarMessage];
 }
 
-class PlaylistOperationInProgress extends PlaylistState {
-  const PlaylistOperationInProgress();
+class SystemPlaylistOperationInProgress extends SystemPlaylistState {
+  const SystemPlaylistOperationInProgress();
 }
 
-class PlaylistOperationSuccess extends PlaylistState {
+class SystemPlaylistOperationSuccess extends SystemPlaylistState {
   final String message;
   final String? createdPlaylistId;
 
-  const PlaylistOperationSuccess({
+  const SystemPlaylistOperationSuccess({
     required this.message,
     this.createdPlaylistId,
   });
@@ -93,10 +93,10 @@ class PlaylistOperationSuccess extends PlaylistState {
   List<Object?> get props => [message, createdPlaylistId];
 }
 
-class PlaylistOperationError extends PlaylistState {
+class SystemPlaylistOperationError extends SystemPlaylistState {
   final String message;
 
-  const PlaylistOperationError({required this.message});
+  const SystemPlaylistOperationError({required this.message});
 
   @override
   List<Object?> get props => [message];

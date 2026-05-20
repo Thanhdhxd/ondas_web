@@ -3,14 +3,14 @@ import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
 import 'package:ondas_web/core/utils/date_formatter.dart';
-import 'package:ondas_web/features/playlists/domain/entities/playlist.dart';
+import 'package:ondas_web/features/playlists/domain/entities/system_playlist.dart';
 
-class PlaylistTableWidget extends StatelessWidget {
-  final List<Playlist> playlists;
-  final void Function(Playlist) onEdit;
-  final void Function(Playlist) onDelete;
+class SystemPlaylistTableWidget extends StatelessWidget {
+  final List<SystemPlaylist> playlists;
+  final void Function(SystemPlaylist) onEdit;
+  final void Function(SystemPlaylist) onDelete;
 
-  const PlaylistTableWidget({
+  const SystemPlaylistTableWidget({
     super.key,
     required this.playlists,
     required this.onEdit,
@@ -102,7 +102,7 @@ class PlaylistTableWidget extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                playlist.isPublic ? 'Public' : 'Private',
+                                playlist.isActive ? 'Active' : 'Inactive',
                                 style: TextStyle(color: textSecondary),
                               ),
                             ],

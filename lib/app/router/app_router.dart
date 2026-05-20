@@ -13,9 +13,9 @@ import 'package:ondas_web/features/genres/presentation/bloc/genre_bloc.dart';
 import 'package:ondas_web/features/genres/presentation/screens/genre_form_screen.dart';
 import 'package:ondas_web/features/genres/presentation/screens/genres_screen.dart';
 import 'package:ondas_web/features/lyrics/presentation/bloc/lyrics_bloc.dart';
-import 'package:ondas_web/features/playlists/presentation/bloc/playlist_bloc.dart';
-import 'package:ondas_web/features/playlists/presentation/screens/playlist_form_screen.dart';
-import 'package:ondas_web/features/playlists/presentation/screens/playlists_screen.dart';
+import 'package:ondas_web/features/playlists/presentation/bloc/system_playlist_bloc.dart';
+import 'package:ondas_web/features/playlists/presentation/screens/system_playlist_form_screen.dart';
+import 'package:ondas_web/features/playlists/presentation/screens/system_playlists_screen.dart';
 import 'package:ondas_web/features/songs/presentation/bloc/song_bloc.dart';
 import 'package:ondas_web/features/songs/presentation/screens/song_form_screen.dart';
 import 'package:ondas_web/features/songs/presentation/screens/songs_screen.dart';
@@ -170,26 +170,28 @@ GoRouter createRouter() {
           ),
           GoRoute(
             path: AppConstants.routePlaylists,
-            name: 'playlists',
+            name: 'systemPlaylists',
             builder: (context, state) => BlocProvider(
-              create: (_) => sl<PlaylistBloc>(),
-              child: const PlaylistsScreen(),
+              create: (_) => sl<SystemPlaylistBloc>(),
+              child: SystemPlaylistsScreen(
+                key: ValueKey(state.uri.toString()),
+              ),
             ),
             routes: [
               GoRoute(
                 path: 'new',
-                name: 'playlistNew',
+                name: 'systemPlaylistNew',
                 builder: (context, state) => BlocProvider(
-                  create: (_) => sl<PlaylistBloc>(),
-                  child: const PlaylistFormScreen(),
+                  create: (_) => sl<SystemPlaylistBloc>(),
+                  child: const SystemPlaylistFormScreen(),
                 ),
               ),
               GoRoute(
                 path: ':id/edit',
-                name: 'playlistEdit',
+                name: 'systemPlaylistEdit',
                 builder: (context, state) => BlocProvider(
-                  create: (_) => sl<PlaylistBloc>(),
-                  child: PlaylistFormScreen(
+                  create: (_) => sl<SystemPlaylistBloc>(),
+                  child: SystemPlaylistFormScreen(
                     playlistId: state.pathParameters['id'],
                   ),
                 ),

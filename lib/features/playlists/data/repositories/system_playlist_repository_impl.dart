@@ -2,22 +2,21 @@ import 'package:dartz/dartz.dart';
 import 'package:ondas_web/core/error/exceptions.dart';
 import 'package:ondas_web/core/error/failures.dart';
 import 'package:ondas_web/core/network/api_response.dart';
-import 'package:ondas_web/features/playlists/data/datasources/playlist_remote_datasource.dart';
-import 'package:ondas_web/features/playlists/domain/entities/playlist.dart';
-import 'package:ondas_web/features/playlists/domain/repositories/playlist_repository.dart';
+import 'package:ondas_web/features/playlists/data/datasources/system_playlist_remote_datasource.dart';
+import 'package:ondas_web/features/playlists/domain/entities/system_playlist.dart';
+import 'package:ondas_web/features/playlists/domain/repositories/system_playlist_repository.dart';
 
-class PlaylistRepositoryImpl implements PlaylistRepository {
-  final PlaylistRemoteDataSource _dataSource;
+class SystemPlaylistRepositoryImpl implements SystemPlaylistRepository {
+  final SystemPlaylistRemoteDataSource _dataSource;
 
-  const PlaylistRepositoryImpl(this._dataSource);
+  const SystemPlaylistRepositoryImpl(this._dataSource);
 
   @override
-  Future<Either<Failure, PageResultDto<Playlist>>> getPlaylists({
+  Future<Either<Failure, PageResultDto<SystemPlaylist>>> getPlaylists({
     required int page,
     required int size,
     String? query,
-    bool? owner,
-    bool? isPublic,
+    bool? isActive,
   }) async {
     try {
       return Right(
@@ -25,8 +24,7 @@ class PlaylistRepositoryImpl implements PlaylistRepository {
           page: page,
           size: size,
           query: query,
-          owner: owner,
-          isPublic: isPublic,
+          isActive: isActive,
         ),
       );
     } on ServerException catch (e) {
@@ -35,7 +33,7 @@ class PlaylistRepositoryImpl implements PlaylistRepository {
   }
 
   @override
-  Future<Either<Failure, Playlist>> getPlaylist({required String id}) async {
+  Future<Either<Failure, SystemPlaylist>> getPlaylist({required String id}) async {
     try {
       return Right(await _dataSource.getPlaylist(id: id));
     } on ServerException catch (e) {
@@ -44,10 +42,10 @@ class PlaylistRepositoryImpl implements PlaylistRepository {
   }
 
   @override
-  Future<Either<Failure, Playlist>> createPlaylist({
+  Future<Either<Failure, SystemPlaylist>> createPlaylist({
     required String name,
     String? description,
-    required bool isPublic,
+    required bool isActive,
     List<int>? coverBytes,
     String? coverFileName,
   }) async {
@@ -56,7 +54,7 @@ class PlaylistRepositoryImpl implements PlaylistRepository {
         await _dataSource.createPlaylist(
           name: name,
           description: description,
-          isPublic: isPublic,
+          isActive: isActive,
           coverBytes: coverBytes,
           coverFileName: coverFileName,
         ),
@@ -67,11 +65,11 @@ class PlaylistRepositoryImpl implements PlaylistRepository {
   }
 
   @override
-  Future<Either<Failure, Playlist>> updatePlaylist({
+  Future<Either<Failure, SystemPlaylist>> updatePlaylist({
     required String id,
     String? name,
     String? description,
-    bool? isPublic,
+    bool? isActive,
     List<int>? coverBytes,
     String? coverFileName,
   }) async {
@@ -81,7 +79,7 @@ class PlaylistRepositoryImpl implements PlaylistRepository {
           id: id,
           name: name,
           description: description,
-          isPublic: isPublic,
+          isActive: isActive,
           coverBytes: coverBytes,
           coverFileName: coverFileName,
         ),
@@ -102,7 +100,7 @@ class PlaylistRepositoryImpl implements PlaylistRepository {
   }
 
   @override
-  Future<Either<Failure, Playlist>> addSongToPlaylist({
+  Future<Either<Failure, SystemPlaylist>> addSongToPlaylist({
     required String playlistId,
     required String songId,
   }) async {
@@ -119,7 +117,7 @@ class PlaylistRepositoryImpl implements PlaylistRepository {
   }
 
   @override
-  Future<Either<Failure, Playlist>> removeSongFromPlaylist({
+  Future<Either<Failure, SystemPlaylist>> removeSongFromPlaylist({
     required String playlistId,
     required String songId,
   }) async {
@@ -136,7 +134,7 @@ class PlaylistRepositoryImpl implements PlaylistRepository {
   }
 
   @override
-  Future<Either<Failure, Playlist>> reorderPlaylistSongs({
+  Future<Either<Failure, SystemPlaylist>> reorderPlaylistSongs({
     required String playlistId,
     required List<String> songIds,
   }) async {
