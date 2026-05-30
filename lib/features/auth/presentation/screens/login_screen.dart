@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/constants/app_constants.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
@@ -73,6 +75,7 @@ class _LoginHeader extends StatelessWidget {
         isDark ? AppColors.darkTextPrimary : AppColors.pureBlack;
     final subtitleColor = AppColors.stone;
     final dividerColor = isDark ? AppColors.darkBorder : AppColors.lightGray;
+    final locale = context.watch<LocaleCubit>().state.locale;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -87,7 +90,7 @@ class _LoginHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Đăng nhập',
+                AppStrings.t(AppStrings.loginTitle, locale),
                 style: AppTypography.headingMedium.copyWith(
                   color: textColor,
                   fontWeight: FontWeight.w500,
@@ -95,7 +98,7 @@ class _LoginHeader extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Chào mừng trở lại, Admin.',
+                AppStrings.t(AppStrings.loginSubtitle, locale),
                 style: AppTypography.body.copyWith(color: subtitleColor),
               ),
             ],

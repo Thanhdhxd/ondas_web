@@ -3,6 +3,9 @@ import 'dart:html' as html;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
@@ -92,6 +95,7 @@ class _SystemPlaylistFormWidgetState extends State<SystemPlaylistFormWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final isLight = Theme.of(context).brightness == Brightness.light;
     final textPrimary = isLight
         ? AppColors.nearBlack
@@ -124,7 +128,7 @@ class _SystemPlaylistFormWidgetState extends State<SystemPlaylistFormWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Thông tin Playlist',
+                    AppStrings.t(AppStrings.playlistInfo, locale),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: textPrimary,
                       fontWeight: FontWeight.w600,
@@ -133,12 +137,12 @@ class _SystemPlaylistFormWidgetState extends State<SystemPlaylistFormWidget> {
                   const SizedBox(height: AppSpacing.xxl),
                   _PlaylistTextField(
                     controller: _nameCtrl,
-                    label: 'Tên playlist *',
-                    hintText: 'VD: Top hits',
+                    label: AppStrings.t(AppStrings.playlistNameLabel, locale),
+                    hintText: AppStrings.t(AppStrings.playlistNameHint, locale),
                     textColor: textPrimary,
                     borderColor: borderColor,
                     validator: (value) => value == null || value.trim().isEmpty
-                        ? 'Không được để trống'
+                        ? AppStrings.t(AppStrings.titleRequired, locale)
                         : null,
                   ),
                   const SizedBox(height: AppSpacing.xl),
@@ -190,7 +194,9 @@ class _SystemPlaylistFormWidgetState extends State<SystemPlaylistFormWidget> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _isActive ? 'Đang hoạt động' : 'Đã ẩn',
+                                _isActive
+                                    ? AppStrings.t(AppStrings.activeStatus, locale)
+                                    : AppStrings.t(AppStrings.hiddenStatus, locale),
                                 style: TextStyle(
                                   color: textPrimary,
                                   fontWeight: FontWeight.w600,
@@ -199,8 +205,8 @@ class _SystemPlaylistFormWidgetState extends State<SystemPlaylistFormWidget> {
                               const SizedBox(height: 4),
                               Text(
                                 _isActive
-                                    ? 'Playlist xuất hiện cho user.'
-                                    : 'Playlist bị ẩn với user.',
+                                    ? AppStrings.t(AppStrings.playlistActiveDesc, locale)
+                                    : AppStrings.t(AppStrings.playlistHiddenDesc, locale),
                                 style: TextStyle(
                                   color: textSecondary,
                                   fontSize: 12,
@@ -226,7 +232,7 @@ class _SystemPlaylistFormWidgetState extends State<SystemPlaylistFormWidget> {
                         onPressed: widget.isLoading
                             ? null
                             : () => Navigator.of(context).pop(),
-                        child: const Text('Hủy'),
+                        child: Text(AppStrings.t(AppStrings.cancel, locale)),
                       ),
                       const SizedBox(width: AppSpacing.md),
                       ElevatedButton(
@@ -241,8 +247,8 @@ class _SystemPlaylistFormWidgetState extends State<SystemPlaylistFormWidget> {
                               )
                             : Text(
                                 widget.initialPlaylist == null
-                                    ? 'Tạo mới'
-                                    : 'Cập nhật',
+                                    ? AppStrings.t(AppStrings.createBtn, locale)
+                                    : AppStrings.t(AppStrings.updateBtn, locale),
                               ),
                       ),
                     ],
@@ -265,7 +271,7 @@ class _SystemPlaylistFormWidgetState extends State<SystemPlaylistFormWidget> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Cover',
+                    AppStrings.t(AppStrings.coverImage, locale),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: textPrimary,
                       fontWeight: FontWeight.w600,
@@ -299,7 +305,7 @@ class _SystemPlaylistFormWidgetState extends State<SystemPlaylistFormWidget> {
                   OutlinedButton.icon(
                     onPressed: widget.isLoading ? null : _pickCover,
                     icon: const Icon(Icons.upload_outlined, size: 16),
-                    label: const Text('Tải ảnh'),
+                    label: Text(AppStrings.t(AppStrings.uploadImage, locale)),
                   ),
                   if (_coverFileName != null) ...[
                     const SizedBox(height: AppSpacing.xs),
@@ -393,12 +399,13 @@ class _DescriptionField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Mô tả',
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        Text(
+          AppStrings.t(AppStrings.albumDescription, locale),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: AppSpacing.xs),
         TextFormField(
@@ -406,7 +413,7 @@ class _DescriptionField extends StatelessWidget {
           maxLines: 3,
           style: TextStyle(fontSize: 14, color: textColor),
           decoration: InputDecoration(
-            hintText: 'Mô tả về playlist...',
+            hintText: AppStrings.t(AppStrings.playlistDescHint, locale),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.lg,
               vertical: AppSpacing.smMd,

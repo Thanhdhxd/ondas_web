@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/constants/app_constants.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
@@ -89,10 +91,11 @@ class _AlbumsScreenState extends State<AlbumsScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AlbumBloc, AlbumState>(
       listener: (context, state) {
+        final locale = context.read<LocaleCubit>().state.locale;
         if (state is AlbumOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.successLight,
             ),
           );
@@ -100,7 +103,7 @@ class _AlbumsScreenState extends State<AlbumsScreen> {
         } else if (state is AlbumOperationError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.errorLight,
             ),
           );
@@ -159,6 +162,7 @@ class _AlbumsContent extends StatelessWidget {
             state is AlbumListLoaded ? state.totalElements : 0;
         final isLoading =
             state is AlbumListLoading || state is AlbumOperationInProgress;
+        final locale = context.watch<LocaleCubit>().state.locale;
 
         return Container(
           color: bgColor,
@@ -173,7 +177,7 @@ class _AlbumsContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Albums',
+                        AppStrings.t(AppStrings.albums, locale),
                         style: Theme.of(context)
                             .textTheme
                             .headlineSmall
@@ -208,7 +212,7 @@ class _AlbumsContent extends StatelessWidget {
                     key: const Key('albumsScreen_addButton'),
                     onPressed: onAdd,
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Thêm album'),
+                    label: Text(AppStrings.t(AppStrings.addAlbum, locale)),
                   ),
                 ],
               ),
@@ -223,7 +227,7 @@ class _AlbumsContent extends StatelessWidget {
                   controller: searchController,
                   style: TextStyle(fontSize: 14, color: textPrimary),
                   decoration: InputDecoration(
-                    hintText: 'Tìm kiếm album...',
+                    hintText: AppStrings.t(AppStrings.searchAlbum, locale),
                     prefixIcon: const Icon(Icons.search, size: 18),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -302,9 +306,14 @@ class _PaginationBar extends StatelessWidget {
               currentPage > 0 ? () => onPageChanged(currentPage - 1) : null,
           color: textSecondary,
         ),
-        Text(
-          'Trang ${currentPage + 1} / $totalPages',
-          style: TextStyle(fontSize: 13, color: textSecondary),
+        Builder(
+          builder: (ctx) {
+            final locale = ctx.watch<LocaleCubit>().state.locale;
+            return Text(
+              '${AppStrings.t(AppStrings.pageOf, locale)} ${currentPage + 1} / $totalPages',
+              style: TextStyle(fontSize: 13, color: textSecondary),
+            );
+          },
         ),
         IconButton(
           key: const Key('albumsScreen_nextPageButton'),
@@ -332,15 +341,16 @@ class _DeleteConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     return AlertDialog(
-      title: const Text('Xác nhận xóa'),
+      title: Text(AppStrings.t(AppStrings.deleteConfirmTitle, locale)),
       content: Text(
-          'Bạn có chắc muốn xóa album "$albumTitle"? Hành động này không thể hoàn tác.'),
+          '${AppStrings.t(AppStrings.deleteConfirmContent, locale).replaceAll('?', '')} "$albumTitle"?'),
       actions: [
         TextButton(
           key: const Key('deleteDialog_cancelButton'),
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Hủy'),
+          child: Text(AppStrings.t(AppStrings.cancel, locale)),
         ),
         ElevatedButton(
           key: const Key('deleteDialog_confirmButton'),
@@ -352,7 +362,7 @@ class _DeleteConfirmDialog extends StatelessWidget {
             Navigator.of(context).pop();
             onConfirm();
           },
-          child: const Text('Xóa'),
+          child: Text(AppStrings.t(AppStrings.delete, locale)),
         ),
       ],
     );

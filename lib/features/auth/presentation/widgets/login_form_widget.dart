@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_semantic_colors.dart';
@@ -46,8 +48,12 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         final isLoading = state is AuthLoading;
-        final errorMessage =
+        final rawMessage =
             state is AuthFailure ? state.message : null;
+        final locale = context.watch<LocaleCubit>().state.locale;
+        // Map response code → text người dùng đọc được
+        final errorMessage =
+            rawMessage != null ? AppStrings.t(rawMessage, locale) : null;
         final semanticColors =
             Theme.of(context).extension<AppSemanticColors>();
 
@@ -66,7 +72,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
               _PillTextField(
                 key: const Key('loginForm_emailField'),
                 controller: _emailController,
-                label: 'Email',
+                label: AppStrings.t(AppStrings.emailLabel, locale),
                 keyboardType: TextInputType.emailAddress,
                 enabled: !isLoading,
                 validator: Validators.email,
@@ -75,7 +81,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
               _PillTextField(
                 key: const Key('loginForm_passwordField'),
                 controller: _passwordController,
-                label: 'Mật khẩu',
+                label: AppStrings.t(AppStrings.passwordLabel, locale),
                 obscureText: _obscurePassword,
                 enabled: !isLoading,
                 validator: Validators.password,
@@ -95,6 +101,9 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
               _SubmitButton(
                 key: const Key('loginForm_submitButton'),
                 isLoading: isLoading,
+                label: isLoading
+                    ? AppStrings.t(AppStrings.loggingIn, locale)
+                    : AppStrings.t(AppStrings.loginButton, locale),
                 onPressed: _submit,
               ),
             ],
@@ -219,11 +228,13 @@ class _PillTextField extends StatelessWidget {
 
 class _SubmitButton extends StatelessWidget {
   final bool isLoading;
+  final String label;
   final VoidCallback onPressed;
 
   const _SubmitButton({
     super.key,
     required this.isLoading,
+    required this.label,
     required this.onPressed,
   });
 
@@ -258,7 +269,7 @@ class _SubmitButton extends StatelessWidget {
                 ),
               )
             : Text(
-                'Đăng nhập',
+                label,
                 style: AppTypography.body.copyWith(
                   color: AppColors.pureWhite,
                   fontWeight: FontWeight.w500,

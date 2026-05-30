@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
@@ -26,6 +29,8 @@ class GenreTableWidget extends StatelessWidget {
         : AppColors.darkTextSecondary;
     final borderColor = isLight ? AppColors.lightGray : AppColors.darkBorder;
 
+    final locale = context.watch<LocaleCubit>().state.locale;
+
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -33,7 +38,7 @@ class GenreTableWidget extends StatelessWidget {
     if (genres.isEmpty) {
       return Center(
         child: Text(
-          'Không có thể loại nào.',
+          AppStrings.t(AppStrings.noGenres, locale),
           style: Theme.of(
             context,
           ).textTheme.bodyMedium?.copyWith(color: textSecondary),
@@ -50,6 +55,7 @@ class GenreTableWidget extends StatelessWidget {
           borderColor: borderColor,
           onEdit: onEdit,
           onDelete: onDelete,
+          locale: locale,
         );
       },
     );
@@ -61,12 +67,14 @@ class _GenreCard extends StatelessWidget {
   final Color borderColor;
   final void Function(Genre genre) onEdit;
   final void Function(Genre genre) onDelete;
+  final Locale locale;
 
   const _GenreCard({
     required this.genre,
     required this.borderColor,
     required this.onEdit,
     required this.onDelete,
+    required this.locale,
   });
 
   @override
@@ -104,14 +112,14 @@ class _GenreCard extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xxs),
                 Text(
-                  genre.slug ?? 'Khong co slug',
+                  genre.slug ?? AppStrings.t(AppStrings.noSlug, locale),
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(color: textSecondary),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  genre.description ?? 'Khong co mo ta',
+                  genre.description ?? AppStrings.t(AppStrings.noDescription, locale),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(
@@ -128,14 +136,14 @@ class _GenreCard extends StatelessWidget {
                 key: Key('genreTable_editButton_${genre.id}'),
                 onPressed: () => onEdit(genre),
                 icon: const Icon(Icons.edit_outlined, size: 16),
-                label: const Text('Sửa'),
+                label: Text(AppStrings.t(AppStrings.edit, locale)),
               ),
               const SizedBox(height: AppSpacing.xs),
               OutlinedButton.icon(
                 key: Key('genreTable_deleteButton_${genre.id}'),
                 onPressed: () => onDelete(genre),
                 icon: const Icon(Icons.delete_outline, size: 16),
-                label: const Text('Xóa'),
+                label: Text(AppStrings.t(AppStrings.delete, locale)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.errorLight,
                   side: const BorderSide(color: AppColors.errorLight),

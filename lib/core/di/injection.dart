@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:ondas_web/core/network/dio_client.dart';
 import 'package:ondas_web/core/network/jwt_interceptor.dart';
 import 'package:ondas_web/core/storage/secure_storage.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:ondas_web/features/auth/data/datasources/auth_remote_datasource_impl.dart';
 import 'package:ondas_web/features/auth/data/repositories/auth_repository_impl.dart';
@@ -124,6 +125,11 @@ Future<void> setupDependencies() async {
   );
   sl.registerLazySingleton<SecureStorage>(
     () => SecureStorage(flutterSecureStorage),
+  );
+
+  // ── Localization ───────────────────────────────────────────────────────────
+  sl.registerLazySingleton<LocaleCubit>(
+    () => LocaleCubit(sl<SecureStorage>()),
   );
 
   // ── Network ────────────────────────────────────────────────────────────────

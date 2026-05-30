@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/constants/api_constants.dart';
 import 'package:ondas_web/core/di/injection.dart';
 import 'package:ondas_web/core/network/dio_client.dart';
@@ -103,6 +105,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
       _optionsError = null;
     });
 
+    final locale = context.read<LocaleCubit>().state.locale;
     String? error;
 
     final artistsResult = await sl<GetArtistsUseCase>()(
@@ -134,6 +137,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
     );
 
     final albums = await _loadAlbumOptions(
+      locale: locale,
       onError: (message) {
         error ??= message;
       },
@@ -194,6 +198,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
   }
 
   Future<List<SongFormOption<String>>> _loadAlbumOptions({
+    required Locale locale,
     required void Function(String message) onError,
   }) async {
     try {
@@ -203,7 +208,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
       );
       final body = response.data as Map<String, dynamic>;
       if (body['success'] != true) {
-        onError(body['message'] as String? ?? 'Không thể tải danh sách albums');
+        onError(body['message'] as String? ?? AppStrings.t(AppStrings.loadAlbumsError, locale));
         return const <SongFormOption<String>>[];
       }
 
@@ -214,13 +219,13 @@ class _SongFormScreenState extends State<SongFormScreen> {
           .map(
             (item) => SongFormOption<String>(
               value: item['id']?.toString() ?? '',
-              label: (item['title'] as String?) ?? 'Untitled album',
+              label: (item['title'] as String?) ?? AppStrings.t(AppStrings.untitledAlbum, locale),
             ),
           )
           .where((item) => item.value.isNotEmpty)
           .toList();
     } catch (_) {
-      onError('Không thể tải danh sách albums');
+      onError(AppStrings.t(AppStrings.loadAlbumsError, locale));
       return const <SongFormOption<String>>[];
     }
   }
@@ -293,6 +298,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final isLight = Theme.of(context).brightness == Brightness.light;
     final bgColor = isLight ? AppColors.pureWhite : AppColors.darkBackground;
     final textPrimary = isLight ? AppColors.nearBlack : AppColors.darkTextPrimary;
@@ -301,6 +307,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
       listeners: [
         BlocListener<SongBloc, SongState>(
           listener: (context, state) {
+            final locale = context.read<LocaleCubit>().state.locale;
             if (state is SongDetailLoaded && _songId != null) {
               _loadSongTags(_songId!);
             } else if (state is SongOperationSuccess) {
@@ -324,7 +331,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
               }
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(state.message),
+                  content: Text(AppStrings.t(state.message, locale)),
                   backgroundColor: AppColors.successLight,
                 ),
               );
@@ -332,7 +339,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
             } else if (state is SongOperationError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(state.message),
+                  content: Text(AppStrings.t(state.message, locale)),
                   backgroundColor: AppColors.errorLight,
                 ),
               );
@@ -341,6 +348,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
         ),
         BlocListener<LyricsBloc, LyricsState>(
           listener: (context, state) {
+            final locale = context.read<LocaleCubit>().state.locale;
             if (state is LyricsLoaded) {
               _currentLyrics = state.lyrics;
               _prefilledSyncedLines = null;
@@ -354,8 +362,9 @@ class _SongFormScreenState extends State<SongFormScreen> {
               if (_awaitingLyricsCreate) {
                 _awaitingLyricsCreate = false;
                 _pendingLyricsDraft = null;
-                final message = _pendingSongSuccessMessage ??
-                    'Bai hat da duoc tao thanh cong.';
+                final message = _pendingSongSuccessMessage != null
+                    ? AppStrings.t(_pendingSongSuccessMessage!, locale)
+                    : AppStrings.t(AppStrings.successOk, locale);
                 _pendingSongSuccessMessage = null;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -367,8 +376,8 @@ class _SongFormScreenState extends State<SongFormScreen> {
                 return;
               }
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Đã lưu lyrics.'),
+                SnackBar(
+                  content: Text(AppStrings.t(AppStrings.lyricsSavedSuccess, locale)),
                   backgroundColor: AppColors.successLight,
                 ),
               );
@@ -377,8 +386,8 @@ class _SongFormScreenState extends State<SongFormScreen> {
               _prefilledSyncedLines = null;
               _prefilledPlainText = null;
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Đã xoá lyrics.'),
+                SnackBar(
+                  content: Text(AppStrings.t(AppStrings.lyricsDeletedSuccess, locale)),
                   backgroundColor: AppColors.successLight,
                 ),
               );
@@ -386,13 +395,16 @@ class _SongFormScreenState extends State<SongFormScreen> {
               if (_awaitingLyricsCreate) {
                 _awaitingLyricsCreate = false;
                 _pendingLyricsDraft = null;
-                final baseMessage = _pendingSongSuccessMessage ??
-                    'Bai hat da duoc tao thanh cong.';
+                final baseMessage = _pendingSongSuccessMessage != null
+                    ? AppStrings.t(_pendingSongSuccessMessage!, locale)
+                    : AppStrings.t(AppStrings.successOk, locale);
                 _pendingSongSuccessMessage = null;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      '$baseMessage Nhung tao lyrics that bai: ${state.message}',
+                      AppStrings.t(AppStrings.songCreatedLyricsFailed, locale)
+                          .replaceAll('{msg}', baseMessage)
+                          .replaceAll('{lyricsMsg}', AppStrings.t(state.message, locale)),
                     ),
                     backgroundColor: AppColors.errorLight,
                   ),
@@ -402,7 +414,10 @@ class _SongFormScreenState extends State<SongFormScreen> {
               }
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Lỗi lyrics: ${state.message}'),
+                  content: Text(
+                    AppStrings.t(AppStrings.lyricsErrorPrefix, locale)
+                        .replaceAll('{msg}', AppStrings.t(state.message, locale)),
+                  ),
                   backgroundColor: AppColors.errorLight,
                 ),
               );
@@ -445,8 +460,8 @@ class _SongFormScreenState extends State<SongFormScreen> {
                       const SizedBox(width: AppSpacing.sm),
                       Text(
                         widget.isEditing
-                            ? 'Chỉnh sửa bài hát'
-                            : 'Thêm bài hát mới',
+                            ? AppStrings.t(AppStrings.editSong, locale)
+                            : AppStrings.t(AppStrings.addSongNew, locale),
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               color: textPrimary,
@@ -492,6 +507,7 @@ class _SongFormScreenState extends State<SongFormScreen> {
   Widget _buildLyricsSection(BuildContext context) {
     return BlocBuilder<LyricsBloc, LyricsState>(
       builder: (context, state) {
+        final locale = context.watch<LocaleCubit>().state.locale;
         final isSaving = state is LyricsSaving;
 
         if (state is LyricsLoading) {
@@ -506,15 +522,17 @@ class _SongFormScreenState extends State<SongFormScreen> {
                 children: [
                   const Icon(Icons.error_outline, color: Colors.red, size: 48),
                   const SizedBox(height: AppSpacing.sm),
-                  Text('Lỗi: ${state.message}',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge
-                          ?.copyWith(color: Colors.red)),
+                  Text(
+                    '${AppStrings.t(AppStrings.unknownError, locale)}: ${AppStrings.t(state.message, locale)}',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(color: Colors.red),
+                  ),
                   const SizedBox(height: AppSpacing.md),
                   ElevatedButton(
                     onPressed: _loadLyrics,
-                    child: const Text('Thử lại'),
+                    child: Text(AppStrings.t(AppStrings.retry, locale)),
                   ),
                 ],
               ),

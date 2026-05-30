@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/constants/app_constants.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
@@ -93,10 +95,11 @@ class _GenresScreenState extends State<GenresScreen> {
   Widget build(BuildContext context) {
     return BlocListener<GenreBloc, GenreState>(
       listener: (context, state) {
+        final locale = context.read<LocaleCubit>().state.locale;
         if (state is GenreOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.successLight,
             ),
           );
@@ -104,7 +107,7 @@ class _GenresScreenState extends State<GenresScreen> {
         } else if (state is GenreOperationError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.errorLight,
             ),
           );
@@ -153,6 +156,7 @@ class _GenresContent extends StatelessWidget {
         ? AppColors.stone
         : AppColors.darkTextSecondary;
     final borderColor = isLight ? AppColors.lightGray : AppColors.darkBorder;
+    final locale = context.watch<LocaleCubit>().state.locale;
 
     return BlocBuilder<GenreBloc, GenreState>(
       builder: (context, state) {
@@ -176,7 +180,7 @@ class _GenresContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Thể loại',
+                        AppStrings.t(AppStrings.genres, locale),
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               color: textPrimary,
@@ -196,7 +200,7 @@ class _GenresContent extends StatelessWidget {
                               : AppColors.darkSurface,
                         ),
                         child: Text(
-                          '$totalElements thể loại',
+                          '$totalElements ${AppStrings.t(AppStrings.genreCount, locale)}',
                           style: TextStyle(fontSize: 12, color: textSecondary),
                         ),
                       ),
@@ -207,7 +211,7 @@ class _GenresContent extends StatelessWidget {
                     key: const Key('genresScreen_addButton'),
                     onPressed: onAdd,
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Thêm thể loại'),
+                    label: Text(AppStrings.t(AppStrings.addGenre, locale)),
                   ),
                 ],
               ),
@@ -219,7 +223,7 @@ class _GenresContent extends StatelessWidget {
                   controller: searchController,
                   style: TextStyle(fontSize: 14, color: textPrimary),
                   decoration: InputDecoration(
-                    hintText: 'Tìm kiếm thể loại...',
+                    hintText: AppStrings.t(AppStrings.searchGenre, locale),
                     prefixIcon: const Icon(Icons.search, size: 18),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -281,6 +285,7 @@ class _PaginationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -293,7 +298,7 @@ class _PaginationBar extends StatelessWidget {
           color: textSecondary,
         ),
         Text(
-          'Trang ${currentPage + 1} / $totalPages',
+          '${AppStrings.t(AppStrings.pageOf, locale)} ${currentPage + 1} / $totalPages',
           style: TextStyle(fontSize: 13, color: textSecondary),
         ),
         IconButton(
@@ -320,14 +325,18 @@ class _DeleteConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     return AlertDialog(
-      title: const Text('Xac nhan xoa'),
-      content: Text('Ban co chac muon xoa the loai "$genreName"?'),
+      title: Text(AppStrings.t(AppStrings.deleteConfirmTitle, locale)),
+      content: Text(
+        AppStrings.t(AppStrings.deleteGenreConfirm, locale)
+            .replaceAll('{name}', genreName),
+      ),
       actions: [
         TextButton(
           key: const Key('deleteDialog_cancelButton'),
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Huy'),
+          child: Text(AppStrings.t(AppStrings.cancel, locale)),
         ),
         ElevatedButton(
           key: const Key('deleteDialog_confirmButton'),
@@ -339,7 +348,7 @@ class _DeleteConfirmDialog extends StatelessWidget {
             Navigator.of(context).pop();
             onConfirm();
           },
-          child: const Text('Xoa'),
+          child: Text(AppStrings.t(AppStrings.delete, locale)),
         ),
       ],
     );

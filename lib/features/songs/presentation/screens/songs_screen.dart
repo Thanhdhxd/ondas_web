@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/constants/app_constants.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
@@ -81,12 +83,16 @@ class _SongsScreenState extends State<SongsScreen> {
   void _onDelete(Song song) {
     showDialog<void>(
       context: context,
-      builder: (_) => _DeleteConfirmDialog(
-        songTitle: song.title,
-        onConfirm: () {
-          context.read<SongBloc>().add(SongDeleteEvent(id: song.id));
-        },
-      ),
+      builder: (dialogContext) {
+        final locale = dialogContext.watch<LocaleCubit>().state.locale;
+        return _DeleteConfirmDialog(
+          locale: locale,
+          songTitle: song.title,
+          onConfirm: () {
+            context.read<SongBloc>().add(SongDeleteEvent(id: song.id));
+          },
+        );
+      },
     );
   }
 
@@ -94,10 +100,11 @@ class _SongsScreenState extends State<SongsScreen> {
   Widget build(BuildContext context) {
     return BlocListener<SongBloc, SongState>(
       listener: (context, state) {
+        final locale = context.read<LocaleCubit>().state.locale;
         if (state is SongOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.successLight,
             ),
           );
@@ -105,7 +112,7 @@ class _SongsScreenState extends State<SongsScreen> {
         } else if (state is SongOperationError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.errorLight,
             ),
           );
@@ -145,6 +152,7 @@ class _SongsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final isLight = Theme.of(context).brightness == Brightness.light;
     final bgColor = isLight ? AppColors.pureWhite : AppColors.darkBackground;
     final textPrimary =
@@ -176,7 +184,7 @@ class _SongsContent extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            'Bài hát',
+                            AppStrings.t(AppStrings.songs, locale),
                             style: Theme.of(context)
                                 .textTheme
                                 .headlineSmall
@@ -216,8 +224,9 @@ class _SongsContent extends StatelessWidget {
                       const SizedBox(height: AppSpacing.xxs),
                       Text(
                         totalElements == 0
-                            ? 'Chưa có bài hát nào'
-                            : '$totalElements bài hát trong thư viện',
+                            ? AppStrings.t(AppStrings.noSongsYet, locale)
+                            : AppStrings.t(AppStrings.songLibraryCount, locale)
+                                .replaceAll('{count}', totalElements.toString()),
                         style: TextStyle(fontSize: 13, color: textSecondary),
                       ),
                     ],
@@ -227,7 +236,7 @@ class _SongsContent extends StatelessWidget {
                     key: const Key('songsScreen_addButton'),
                     onPressed: onAdd,
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Thêm bài hát'),
+                    label: Text(AppStrings.t(AppStrings.addSongNew, locale)),
                   ),
                 ],
               ),
@@ -239,7 +248,7 @@ class _SongsContent extends StatelessWidget {
                   controller: searchController,
                   style: TextStyle(fontSize: 14, color: textPrimary),
                   decoration: InputDecoration(
-                    hintText: 'Tìm kiếm bài hát...',
+                    hintText: AppStrings.t(AppStrings.searchSongHint, locale),
                     prefixIcon: const Icon(Icons.search, size: 18),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -303,6 +312,7 @@ class _PaginationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -323,7 +333,7 @@ class _PaginationBar extends StatelessWidget {
             border: Border.all(color: borderColor),
           ),
           child: Text(
-            'Trang ${currentPage + 1} / $totalPages',
+            '${AppStrings.t(AppStrings.pageOf, locale)} ${currentPage + 1} / $totalPages',
             style: TextStyle(fontSize: 13, color: textSecondary),
           ),
         ),
@@ -343,22 +353,27 @@ class _PaginationBar extends StatelessWidget {
 class _DeleteConfirmDialog extends StatelessWidget {
   final String songTitle;
   final VoidCallback onConfirm;
+  final Locale locale;
 
   const _DeleteConfirmDialog({
     required this.songTitle,
     required this.onConfirm,
+    required this.locale,
   });
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Xác nhận xóa'),
-      content: Text('Bạn có chắc muốn xóa bài hát "$songTitle"?'),
+      title: Text(AppStrings.t(AppStrings.deleteConfirmTitle, locale)),
+      content: Text(
+        AppStrings.t(AppStrings.deleteSongConfirm, locale)
+            .replaceAll('{name}', songTitle),
+      ),
       actions: [
         TextButton(
           key: const Key('deleteDialog_cancelButton'),
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Hủy'),
+          child: Text(AppStrings.t(AppStrings.cancel, locale)),
         ),
         ElevatedButton(
           key: const Key('deleteDialog_confirmButton'),
@@ -370,7 +385,7 @@ class _DeleteConfirmDialog extends StatelessWidget {
             Navigator.of(context).pop();
             onConfirm();
           },
-          child: const Text('Xóa'),
+          child: Text(AppStrings.t(AppStrings.delete, locale)),
         ),
       ],
     );

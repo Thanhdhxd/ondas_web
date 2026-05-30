@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/constants/app_constants.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
@@ -98,10 +100,11 @@ class _ArtistsScreenState extends State<ArtistsScreen> {
   Widget build(BuildContext context) {
     return BlocListener<ArtistBloc, ArtistState>(
       listener: (context, state) {
+        final locale = context.read<LocaleCubit>().state.locale;
         if (state is ArtistOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.successLight,
             ),
           );
@@ -111,7 +114,7 @@ class _ArtistsScreenState extends State<ArtistsScreen> {
         } else if (state is ArtistOperationError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.errorLight,
             ),
           );
@@ -160,6 +163,7 @@ class _ArtistsContent extends StatelessWidget {
     final textSecondary =
         isLight ? AppColors.stone : AppColors.darkTextSecondary;
     final borderColor = isLight ? AppColors.lightGray : AppColors.darkBorder;
+    final locale = context.watch<LocaleCubit>().state.locale;
 
     return BlocBuilder<ArtistBloc, ArtistState>(
       builder: (context, state) {
@@ -183,7 +187,7 @@ class _ArtistsContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Nghệ sĩ',
+                        AppStrings.t(AppStrings.artists, locale),
                         style: Theme.of(context)
                             .textTheme
                             .headlineSmall
@@ -194,7 +198,7 @@ class _ArtistsContent extends StatelessWidget {
                       ),
                       const SizedBox(height: AppSpacing.xxs),
                       Text(
-                        '$totalElements nghệ sĩ',
+                        '$totalElements ${AppStrings.t(AppStrings.artistCount, locale)}',
                         style: TextStyle(fontSize: 13, color: textSecondary),
                       ),
                     ],
@@ -204,7 +208,7 @@ class _ArtistsContent extends StatelessWidget {
                     key: const Key('artistsScreen_addButton'),
                     onPressed: onAdd,
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Thêm nghệ sĩ'),
+                    label: Text(AppStrings.t(AppStrings.addArtist, locale)),
                   ),
                 ],
               ),
@@ -217,7 +221,7 @@ class _ArtistsContent extends StatelessWidget {
                   controller: searchController,
                   style: TextStyle(fontSize: 14, color: textPrimary),
                   decoration: InputDecoration(
-                    hintText: 'Tìm kiếm nghệ sĩ...',
+                    hintText: AppStrings.t(AppStrings.searchArtist, locale),
                     prefixIcon: const Icon(Icons.search, size: 18),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -288,6 +292,7 @@ class _PaginationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -300,7 +305,7 @@ class _PaginationBar extends StatelessWidget {
           color: textSecondary,
         ),
         Text(
-          'Trang ${currentPage + 1} / $totalPages',
+          '${AppStrings.t(AppStrings.pageOf, locale)} ${currentPage + 1} / $totalPages',
           style: TextStyle(fontSize: 13, color: textSecondary),
         ),
         IconButton(
@@ -329,14 +334,18 @@ class _DeleteConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     return AlertDialog(
-      title: const Text('Xác nhận xóa'),
-      content: Text('Bạn có chắc muốn xóa nghệ sĩ "$artistName"? Hành động này không thể hoàn tác.'),
+      title: Text(AppStrings.t(AppStrings.deleteConfirmTitle, locale)),
+      content: Text(
+        AppStrings.t(AppStrings.deleteArtistConfirm, locale)
+            .replaceAll('{name}', artistName),
+      ),
       actions: [
         TextButton(
           key: const Key('deleteDialog_cancelButton'),
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Hủy'),
+          child: Text(AppStrings.t(AppStrings.cancel, locale)),
         ),
         ElevatedButton(
           key: const Key('deleteDialog_confirmButton'),
@@ -348,7 +357,7 @@ class _DeleteConfirmDialog extends StatelessWidget {
             Navigator.of(context).pop();
             onConfirm();
           },
-          child: const Text('Xóa'),
+          child: Text(AppStrings.t(AppStrings.delete, locale)),
         ),
       ],
     );

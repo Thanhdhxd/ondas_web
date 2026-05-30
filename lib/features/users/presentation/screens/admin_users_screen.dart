@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/constants/app_constants.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
@@ -102,10 +104,11 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AdminUserBloc, AdminUserState>(
       listener: (context, state) {
+        final locale = context.read<LocaleCubit>().state.locale;
         if (state is AdminUserOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.successLight,
             ),
           );
@@ -113,7 +116,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         } else if (state is AdminUserOperationError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.errorLight,
             ),
           );
@@ -159,6 +162,7 @@ class _AdminUsersContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final isLight = Theme.of(context).brightness == Brightness.light;
     final bgColor = isLight ? AppColors.pureWhite : AppColors.darkBackground;
     final textPrimary = isLight
@@ -194,7 +198,7 @@ class _AdminUsersContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Người dùng',
+                        AppStrings.t(AppStrings.users, locale),
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               color: textPrimary,
@@ -203,7 +207,7 @@ class _AdminUsersContent extends StatelessWidget {
                       ),
                       const SizedBox(height: AppSpacing.xxs),
                       Text(
-                        '$totalElements tài khoản',
+                        '$totalElements ${AppStrings.t(AppStrings.accountsCount, locale)}',
                         style: TextStyle(fontSize: 13, color: textSecondary),
                       ),
                     ],
@@ -223,7 +227,7 @@ class _AdminUsersContent extends StatelessWidget {
                       controller: searchController,
                       style: TextStyle(fontSize: 14, color: textPrimary),
                       decoration: InputDecoration(
-                        hintText: 'Tìm theo email hoặc tên hiển thị...',
+                        hintText: AppStrings.t(AppStrings.searchUserHint, locale),
                         prefixIcon: const Icon(Icons.search, size: 18),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -294,33 +298,34 @@ class _RoleFilter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     return SizedBox(
       width: 220,
       child: DropdownButtonFormField<String?>(
         key: ValueKey<String?>('adminUsers_roleFilter_$selectedRole'),
         initialValue: selectedRole,
         isExpanded: true,
-        items: const [
+        items: [
           DropdownMenuItem<String?>(
             value: null,
-            child: Text('Tất cả vai trò', overflow: TextOverflow.ellipsis),
+            child: Text(AppStrings.t(AppStrings.allRoles, locale), overflow: TextOverflow.ellipsis),
           ),
           DropdownMenuItem<String?>(
             value: AppConstants.roleUser,
-            child: Text('Người dùng', overflow: TextOverflow.ellipsis),
+            child: Text(AppStrings.t(AppStrings.roleUserLabel, locale), overflow: TextOverflow.ellipsis),
           ),
           DropdownMenuItem<String?>(
             value: AppConstants.roleContentManager,
-            child: Text('Quản lý nội dung', overflow: TextOverflow.ellipsis),
+            child: Text(AppStrings.t(AppStrings.roleContentManagerLabel, locale), overflow: TextOverflow.ellipsis),
           ),
           DropdownMenuItem<String?>(
             value: AppConstants.roleAdmin,
-            child: Text('Quản trị', overflow: TextOverflow.ellipsis),
+            child: Text(AppStrings.t(AppStrings.roleAdminLabel, locale), overflow: TextOverflow.ellipsis),
           ),
         ],
         onChanged: onChanged,
         decoration: InputDecoration(
-          labelText: 'Vai trò',
+          labelText: AppStrings.t(AppStrings.roleLabel, locale),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppRadius.container),
           ),
@@ -347,29 +352,30 @@ class _StatusFilter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     return SizedBox(
       width: 200,
       child: DropdownButtonFormField<bool?>(
         key: ValueKey<String>('adminUsers_statusFilter_$selectedActive'),
         initialValue: selectedActive,
         isExpanded: true,
-        items: const [
+        items: [
           DropdownMenuItem<bool?>(
             value: null,
-            child: Text('Tất cả trạng thái', overflow: TextOverflow.ellipsis),
+            child: Text(AppStrings.t(AppStrings.allStatuses, locale), overflow: TextOverflow.ellipsis),
           ),
           DropdownMenuItem<bool?>(
             value: true,
-            child: Text('Hoạt động', overflow: TextOverflow.ellipsis),
+            child: Text(AppStrings.t(AppStrings.activeStatus, locale), overflow: TextOverflow.ellipsis),
           ),
           DropdownMenuItem<bool?>(
             value: false,
-            child: Text('Bị khóa', overflow: TextOverflow.ellipsis),
+            child: Text(AppStrings.t(AppStrings.bannedStatus, locale), overflow: TextOverflow.ellipsis),
           ),
         ],
         onChanged: onChanged,
         decoration: InputDecoration(
-          labelText: 'Trạng thái',
+          labelText: AppStrings.t(AppStrings.statusLabel, locale),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppRadius.container),
           ),
@@ -400,6 +406,7 @@ class _PaginationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -421,7 +428,7 @@ class _PaginationBar extends StatelessWidget {
             border: Border.all(color: borderColor),
           ),
           child: Text(
-            'Trang ${currentPage + 1} / $totalPages',
+            '${AppStrings.t(AppStrings.pageOf, locale)} ${currentPage + 1} / $totalPages',
             style: TextStyle(fontSize: 13, color: textSecondary),
           ),
         ),
@@ -459,6 +466,7 @@ class _UserDetailDialogState extends State<_UserDetailDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final isLight = Theme.of(context).brightness == Brightness.light;
     final textPrimary = isLight
         ? AppColors.nearBlack
@@ -468,7 +476,7 @@ class _UserDetailDialogState extends State<_UserDetailDialog> {
         : AppColors.darkTextSecondary;
 
     return AlertDialog(
-      title: const Text('Chi tiết người dùng'),
+      title: Text(AppStrings.t(AppStrings.userDetailTitle, locale)),
       content: SizedBox(
         width: 420,
         child: BlocBuilder<AdminUserBloc, AdminUserState>(
@@ -481,7 +489,7 @@ class _UserDetailDialogState extends State<_UserDetailDialog> {
             final user = state is AdminUserDetailLoaded ? state.user : null;
             if (user == null) {
               return Text(
-                'Không thể tải thông tin người dùng.',
+                AppStrings.t(AppStrings.loadUserDetailError, locale),
                 style: TextStyle(color: textSecondary),
               );
             }
@@ -496,37 +504,39 @@ class _UserDetailDialogState extends State<_UserDetailDialog> {
                   color: textPrimary,
                 ),
                 _DetailRow(
-                  label: 'Ten hien thi',
+                  label: AppStrings.t(AppStrings.displayNameLabel, locale),
                   value: user.displayName,
                   color: textPrimary,
                 ),
                 _DetailRow(
-                  label: 'Vai trò',
-                  value: user.role ?? '—',
+                  label: AppStrings.t(AppStrings.roleLabel, locale),
+                  value: user.role != null ? _roleLabel(user.role!, locale) : '—',
                   color: textPrimary,
                 ),
                 _DetailRow(
-                  label: 'Trạng thái',
-                  value: user.active ? 'Hoạt động' : 'Bị khóa',
+                  label: AppStrings.t(AppStrings.statusLabel, locale),
+                  value: user.active
+                      ? AppStrings.t(AppStrings.activeStatus, locale)
+                      : AppStrings.t(AppStrings.bannedStatus, locale),
                   color: textPrimary,
                 ),
                 _DetailRow(
-                  label: 'Lý do khóa',
+                  label: AppStrings.t(AppStrings.banReasonLabel, locale),
                   value: user.banReason ?? '—',
                   color: textPrimary,
                 ),
                 _DetailRow(
-                  label: 'Khóa lúc',
+                  label: AppStrings.t(AppStrings.bannedAtLabel, locale),
                   value: _formatDateTime(user.bannedAt),
                   color: textPrimary,
                 ),
                 _DetailRow(
-                  label: 'Đăng nhập gần',
+                  label: AppStrings.t(AppStrings.lastLoginLabel, locale),
                   value: _formatDateTime(user.lastLoginAt),
                   color: textPrimary,
                 ),
                 _DetailRow(
-                  label: 'Tạo lúc',
+                  label: AppStrings.t(AppStrings.createdAtLabel, locale),
                   value: _formatDateTime(user.createdAt),
                   color: textPrimary,
                 ),
@@ -539,7 +549,7 @@ class _UserDetailDialogState extends State<_UserDetailDialog> {
         TextButton(
           key: const Key('adminUserDetail_closeButton'),
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Đóng'),
+          child: Text(AppStrings.t(AppStrings.close, locale)),
         ),
         BlocBuilder<AdminUserBloc, AdminUserState>(
           builder: (context, state) {
@@ -555,7 +565,7 @@ class _UserDetailDialogState extends State<_UserDetailDialog> {
                 ),
                 onPressed: () =>
                     _openBanDialog(context, widget.rootContext, user),
-                child: const Text('Khóa tài khoản'),
+                child: Text(AppStrings.t(AppStrings.banAccountLabel, locale)),
               );
             }
             return ElevatedButton(
@@ -565,7 +575,7 @@ class _UserDetailDialogState extends State<_UserDetailDialog> {
                 foregroundColor: AppColors.pureWhite,
               ),
               onPressed: () => _confirmUnban(context, user),
-              child: const Text('Mở khóa'),
+              child: Text(AppStrings.t(AppStrings.unbanAccountLabel, locale)),
             );
           },
         ),
@@ -582,49 +592,52 @@ class _UserDetailDialogState extends State<_UserDetailDialog> {
     await showDialog<void>(
       context: context,
       useRootNavigator: false,
-      builder: (_) => AlertDialog(
-        title: const Text('Khóa tài khoản'),
-        content: TextField(
-          key: const Key('adminUserDetail_banReasonField'),
-          controller: _banReasonController,
-          maxLines: 3,
-          decoration: const InputDecoration(
-            hintText: 'Nhập lý do khóa tài khoản...',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            key: const Key('adminUserDetail_banCancelButton'),
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Hủy'),
-          ),
-          ElevatedButton(
-            key: const Key('adminUserDetail_banConfirmButton'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.errorLight,
-              foregroundColor: AppColors.pureWhite,
+      builder: (dialogContext) {
+        final locale = dialogContext.watch<LocaleCubit>().state.locale;
+        return AlertDialog(
+          title: Text(AppStrings.t(AppStrings.banAccountLabel, locale)),
+          content: TextField(
+            key: const Key('adminUserDetail_banReasonField'),
+            controller: _banReasonController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: AppStrings.t(AppStrings.banReasonHint, locale),
+              border: const OutlineInputBorder(),
             ),
-            onPressed: () {
-              final reason = _banReasonController.text.trim();
-              if (reason.isEmpty) {
-                ScaffoldMessenger.of(rootContext).showSnackBar(
-                  const SnackBar(
-                    content: Text('Vui lòng nhập lý do khóa.'),
-                    backgroundColor: AppColors.errorLight,
-                  ),
-                );
-                return;
-              }
-              Navigator.of(context).pop();
-              widget.bloc.add(
-                AdminUserBanEvent(id: user.id, banReason: reason),
-              );
-            },
-            child: const Text('Khóa'),
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              key: const Key('adminUserDetail_banCancelButton'),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(AppStrings.t(AppStrings.cancel, locale)),
+            ),
+            ElevatedButton(
+              key: const Key('adminUserDetail_banConfirmButton'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.errorLight,
+                foregroundColor: AppColors.pureWhite,
+              ),
+              onPressed: () {
+                final reason = _banReasonController.text.trim();
+                if (reason.isEmpty) {
+                  ScaffoldMessenger.of(rootContext).showSnackBar(
+                    SnackBar(
+                      content: Text(AppStrings.t(AppStrings.banReasonRequired, locale)),
+                      backgroundColor: AppColors.errorLight,
+                    ),
+                  );
+                  return;
+                }
+                Navigator.of(dialogContext).pop();
+                widget.bloc.add(
+                  AdminUserBanEvent(id: user.id, banReason: reason),
+                );
+              },
+              child: Text(AppStrings.t(AppStrings.banButtonLabel, locale)),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -632,30 +645,49 @@ class _UserDetailDialogState extends State<_UserDetailDialog> {
     await showDialog<void>(
       context: context,
       useRootNavigator: false,
-      builder: (_) => AlertDialog(
-        title: const Text('Mở khóa tài khoản'),
-        content: Text('Bạn chắc chắn muốn mở khóa ${user.displayName}?'),
-        actions: [
-          TextButton(
-            key: const Key('adminUserDetail_unbanCancelButton'),
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Hủy'),
+      builder: (dialogContext) {
+        final locale = dialogContext.watch<LocaleCubit>().state.locale;
+        return AlertDialog(
+          title: Text(AppStrings.t(AppStrings.unbanAccountTitle, locale)),
+          content: Text(
+            AppStrings.t(AppStrings.unbanAccountConfirm, locale)
+                .replaceAll('{name}', user.displayName),
           ),
-          ElevatedButton(
-            key: const Key('adminUserDetail_unbanConfirmButton'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.successLight,
-              foregroundColor: AppColors.pureWhite,
+          actions: [
+            TextButton(
+              key: const Key('adminUserDetail_unbanCancelButton'),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(AppStrings.t(AppStrings.cancel, locale)),
             ),
-            onPressed: () {
-              Navigator.of(context).pop();
-              widget.bloc.add(AdminUserUnbanEvent(id: user.id));
-            },
-            child: const Text('Mở khóa'),
-          ),
-        ],
-      ),
+            ElevatedButton(
+              key: const Key('adminUserDetail_unbanConfirmButton'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.successLight,
+                foregroundColor: AppColors.pureWhite,
+              ),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                widget.bloc.add(AdminUserUnbanEvent(id: user.id));
+              },
+              child: Text(AppStrings.t(AppStrings.unbanAccountLabel, locale)),
+            ),
+          ],
+        );
+      },
     );
+  }
+
+  String _roleLabel(String role, Locale locale) {
+    switch (role) {
+      case 'ADMIN':
+        return AppStrings.t(AppStrings.roleAdminLabel, locale);
+      case 'CONTENT_MANAGER':
+        return AppStrings.t(AppStrings.roleContentManagerLabel, locale);
+      case 'USER':
+        return AppStrings.t(AppStrings.roleUserLabel, locale);
+      default:
+        return role;
+    }
   }
 
   String _formatDateTime(String? value) {

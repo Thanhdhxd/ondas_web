@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
 import 'package:ondas_web/features/genres/domain/entities/genre.dart';
@@ -75,10 +77,11 @@ class _GenreFormScreenState extends State<GenreFormScreen> {
 
     return BlocListener<GenreBloc, GenreState>(
       listener: (context, state) {
+        final locale = context.read<LocaleCubit>().state.locale;
         if (state is GenreOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.successLight,
             ),
           );
@@ -86,7 +89,7 @@ class _GenreFormScreenState extends State<GenreFormScreen> {
         } else if (state is GenreOperationError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.errorLight,
             ),
           );
@@ -121,8 +124,8 @@ class _GenreFormScreenState extends State<GenreFormScreen> {
                       const SizedBox(width: AppSpacing.sm),
                       Text(
                         widget.isEditing
-                            ? 'Chỉnh sửa thể loại'
-                            : 'Thêm thể loại mới',
+                            ? AppStrings.t(AppStrings.editGenre, context.watch<LocaleCubit>().state.locale)
+                            : AppStrings.t(AppStrings.createGenre, context.watch<LocaleCubit>().state.locale),
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               color: textPrimary,

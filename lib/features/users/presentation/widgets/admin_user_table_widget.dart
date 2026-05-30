@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
@@ -19,6 +22,7 @@ class AdminUserTableWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final isLight = Theme.of(context).brightness == Brightness.light;
     final headerColor = isLight
         ? AppColors.snow
@@ -38,7 +42,7 @@ class AdminUserTableWidget extends StatelessWidget {
     if (users.isEmpty) {
       return Center(
         child: Text(
-          'Không có người dùng nào.',
+          AppStrings.t(AppStrings.noUsersFound, locale),
           style: Theme.of(
             context,
           ).textTheme.bodyMedium?.copyWith(color: textSecondary),
@@ -63,7 +67,7 @@ class AdminUserTableWidget extends StatelessWidget {
           6: FixedColumnWidth(90),
         },
         children: [
-          _buildHeader(headerColor, borderColor, textSecondary),
+          _buildHeader(headerColor, borderColor, textSecondary, locale),
           ...users.asMap().entries.map(
             (entry) => _buildRow(
               context,
@@ -73,6 +77,7 @@ class AdminUserTableWidget extends StatelessWidget {
               textPrimary,
               textSecondary,
               borderColor,
+              locale,
             ),
           ),
         ],
@@ -84,6 +89,7 @@ class AdminUserTableWidget extends StatelessWidget {
     Color headerColor,
     Color borderColor,
     Color textSecondary,
+    Locale locale,
   ) {
     return TableRow(
       decoration: BoxDecoration(
@@ -92,12 +98,12 @@ class AdminUserTableWidget extends StatelessWidget {
       ),
       children: [
         _headerCell('', textSecondary),
-        _headerCell('Người dùng', textSecondary),
-        _headerCell('Vai trò', textSecondary),
-        _headerCell('Trạng thái', textSecondary),
-        _headerCell('Đăng nhập gần', textSecondary),
-        _headerCell('Tạo lúc', textSecondary),
-        _headerCell('Hành động', textSecondary),
+        _headerCell(AppStrings.t(AppStrings.users, locale), textSecondary),
+        _headerCell(AppStrings.t(AppStrings.roleLabel, locale), textSecondary),
+        _headerCell(AppStrings.t(AppStrings.statusLabel, locale), textSecondary),
+        _headerCell(AppStrings.t(AppStrings.lastLoginLabel, locale), textSecondary),
+        _headerCell(AppStrings.t(AppStrings.createdAtLabel, locale), textSecondary),
+        _headerCell(AppStrings.t(AppStrings.actions, locale), textSecondary),
       ],
     );
   }
@@ -128,6 +134,7 @@ class AdminUserTableWidget extends StatelessWidget {
     Color textPrimary,
     Color textSecondary,
     Color borderColor,
+    Locale locale,
   ) {
     final rowBg = isEven
         ? Colors.transparent
@@ -163,7 +170,7 @@ class AdminUserTableWidget extends StatelessWidget {
             vertical: AppSpacing.smMd,
           ),
           child: Text(
-            _roleLabel(user.role),
+            _roleLabel(user.role, locale),
             style: TextStyle(fontSize: 13, color: textSecondary),
           ),
         ),
@@ -202,7 +209,7 @@ class AdminUserTableWidget extends StatelessWidget {
           child: IconButton(
             key: Key('adminUserTable_viewButton_${user.id}'),
             icon: const Icon(Icons.open_in_new, size: 18),
-            tooltip: 'Chi tiết',
+            tooltip: AppStrings.t(AppStrings.userDetailLabel, locale),
             onPressed: () => onView(user),
             color: textSecondary,
             visualDensity: VisualDensity.compact,
@@ -218,14 +225,14 @@ class AdminUserTableWidget extends StatelessWidget {
     return DateFormatter.formatDateTime(parsed);
   }
 
-  String _roleLabel(String? role) {
+  String _roleLabel(String? role, Locale locale) {
     switch (role) {
       case 'ADMIN':
-        return 'Quản trị';
+        return AppStrings.t(AppStrings.roleAdminLabel, locale);
       case 'CONTENT_MANAGER':
-        return 'Quản lý nội dung';
+        return AppStrings.t(AppStrings.roleContentManagerLabel, locale);
       case 'USER':
-        return 'Người dùng';
+        return AppStrings.t(AppStrings.roleUserLabel, locale);
       default:
         return role ?? '—';
     }
@@ -311,7 +318,10 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labelText = active ? 'Hoạt động' : 'Bị khóa';
+    final locale = context.watch<LocaleCubit>().state.locale;
+    final labelText = active
+        ? AppStrings.t(AppStrings.activeStatus, locale)
+        : AppStrings.t(AppStrings.bannedStatus, locale);
     final bgColor = active ? AppColors.successLight : AppColors.errorLight;
     final textColor = active ? AppColors.pureWhite : AppColors.pureWhite;
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/constants/app_constants.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
@@ -113,6 +115,7 @@ class _TopBar extends StatelessWidget {
     final isLight = Theme.of(context).brightness == Brightness.light;
     final borderColor = isLight ? AppColors.lightGray : AppColors.darkBorder;
     final bgColor = isLight ? AppColors.pureWhite : AppColors.darkSurface;
+    final locale = context.watch<LocaleCubit>().state.locale;
 
     return Container(
       height: 60,
@@ -124,7 +127,7 @@ class _TopBar extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            'Dashboard',
+            AppStrings.t(AppStrings.dashboard, locale),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w500,
                 ),
@@ -203,12 +206,17 @@ class _UserDropdown extends StatelessWidget {
         const PopupMenuDivider(),
         PopupMenuItem<String>(
           value: 'logout',
-          child: Row(
-            children: [
-              const Icon(Icons.logout, size: 16),
-              const SizedBox(width: AppSpacing.sm),
-              const Text('Logout'),
-            ],
+          child: Builder(
+            builder: (ctx) {
+              final locale = ctx.watch<LocaleCubit>().state.locale;
+              return Row(
+                children: [
+                  const Icon(Icons.logout, size: 16),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(AppStrings.t(AppStrings.logoutButton, locale)),
+                ],
+              );
+            },
           ),
         ),
       ],

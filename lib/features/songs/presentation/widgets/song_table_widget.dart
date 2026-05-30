@@ -1,4 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
@@ -29,6 +32,7 @@ class SongTableWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final isLight = Theme.of(context).brightness == Brightness.light;
     final borderColor = isLight ? AppColors.lightGray : AppColors.darkBorder;
     final textSecondary =
@@ -59,7 +63,7 @@ class SongTableWidget extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
-              'Chưa có bài hát nào',
+              AppStrings.t(AppStrings.noSongsYet, locale),
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: isLight
                         ? AppColors.nearBlack
@@ -69,7 +73,7 @@ class SongTableWidget extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.xxs),
             Text(
-              'Nhấn "Thêm bài hát" để bắt đầu',
+              AppStrings.t(AppStrings.clickAddSongStart, locale),
               style: TextStyle(fontSize: 13, color: textSecondary),
             ),
           ],
@@ -134,6 +138,7 @@ class _SongTableHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final headerColor =
         isLight ? AppColors.snow : AppColors.darkSurfaceElevated;
     return Container(
@@ -149,12 +154,12 @@ class _SongTableHeader extends StatelessWidget {
         children: [
           const SizedBox(width: _kAvatarWidth),
           const SizedBox(width: AppSpacing.md),
-          Expanded(flex: _kTitleFlex, child: _cell('BÀI HÁT')),
-          Expanded(flex: _kArtistFlex, child: _cell('NGHỆ SĨ')),
-          Expanded(flex: _kGenreFlex, child: _cell('THỂ LOẠI')),
-          SizedBox(width: _kDurationWidth, child: _cell('THỜI LƯỢNG')),
-          SizedBox(width: _kStatusWidth, child: _cell('TRẠNG THÁI')),
-          SizedBox(width: _kActionsWidth, child: _cell('HÀNH ĐỘNG')),
+          Expanded(flex: _kTitleFlex, child: _cell(AppStrings.t(AppStrings.songColumnHeader, locale))),
+          Expanded(flex: _kArtistFlex, child: _cell(AppStrings.t(AppStrings.artistColumnHeader, locale))),
+          Expanded(flex: _kGenreFlex, child: _cell(AppStrings.t(AppStrings.genreColumnHeader, locale))),
+          SizedBox(width: _kDurationWidth, child: _cell(AppStrings.t(AppStrings.durationColumnHeader, locale))),
+          SizedBox(width: _kStatusWidth, child: _cell(AppStrings.t(AppStrings.statusColumnHeader, locale))),
+          SizedBox(width: _kActionsWidth, child: _cell(AppStrings.t(AppStrings.actionsColumnHeader, locale))),
         ],
       ),
     );
@@ -201,6 +206,7 @@ class _SongTableRowState extends State<_SongTableRow> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final isLight = widget.isLight;
     final textPrimary =
         isLight ? AppColors.nearBlack : AppColors.darkTextPrimary;
@@ -283,7 +289,7 @@ class _SongTableRowState extends State<_SongTableRow> {
                   _ActionIconButton(
                     key: Key('songTable_editButton_${widget.song.id}'),
                     icon: Icons.edit_outlined,
-                    tooltip: 'Chỉnh sửa',
+                    tooltip: AppStrings.t(AppStrings.edit, locale),
                     color: textSecondary,
                     hoverColor: AppColors.nearBlack,
                     isLight: isLight,
@@ -293,7 +299,7 @@ class _SongTableRowState extends State<_SongTableRow> {
                   _ActionIconButton(
                     key: Key('songTable_deleteButton_${widget.song.id}'),
                     icon: Icons.delete_outline,
-                    tooltip: 'Xóa',
+                    tooltip: AppStrings.t(AppStrings.delete, locale),
                     color: AppColors.silver,
                     hoverColor: AppColors.errorLight,
                     isLight: isLight,
@@ -425,6 +431,7 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final fg = active ? AppColors.successLight : AppColors.stone;
     final bg = active
         ? AppColors.successLight.withValues(alpha: 0.10)
@@ -460,7 +467,7 @@ class _StatusBadge extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.xxs + 1),
             Text(
-              active ? 'Active' : 'Inactive',
+              active ? AppStrings.t(AppStrings.activeStatus, locale) : AppStrings.t(AppStrings.inactiveStatus, locale),
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
