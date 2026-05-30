@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/constants/app_constants.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
@@ -88,19 +90,22 @@ class _SystemPlaylistFormScreenState extends State<SystemPlaylistFormScreen> {
         ? AppColors.nearBlack
         : AppColors.darkTextPrimary;
 
+    final locale = context.watch<LocaleCubit>().state.locale;
+
     return BlocListener<SystemPlaylistBloc, SystemPlaylistState>(
       listener: (context, state) {
+        final locale = context.read<LocaleCubit>().state.locale;
         if (state is SystemPlaylistDetailLoaded && state.snackbarMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.snackbarMessage!),
+              content: Text(AppStrings.t(state.snackbarMessage!, locale)),
               backgroundColor: AppColors.errorLight,
             ),
           );
         } else if (state is SystemPlaylistOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.successLight,
             ),
           );
@@ -108,7 +113,7 @@ class _SystemPlaylistFormScreenState extends State<SystemPlaylistFormScreen> {
         } else if (state is SystemPlaylistOperationError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.errorLight,
             ),
           );
@@ -145,8 +150,8 @@ class _SystemPlaylistFormScreenState extends State<SystemPlaylistFormScreen> {
                       const SizedBox(width: AppSpacing.sm),
                       Text(
                         widget.isEditing
-                            ? 'Sửa System Playlist'
-                            : 'Thêm System Playlist',
+                            ? AppStrings.t(AppStrings.editPlaylist, locale)
+                            : AppStrings.t(AppStrings.addPlaylist, locale),
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               color: textPrimary,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/constants/app_constants.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
@@ -76,27 +78,33 @@ class _TagsScreenState extends State<TagsScreen> {
   void _onDelete(Tag tag) {
     showDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Xác nhận xóa'),
-        content: Text('Bạn có chắc muốn xóa "${tag.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Hủy'),
+      builder: (dialogContext) {
+        final locale = dialogContext.watch<LocaleCubit>().state.locale;
+        return AlertDialog(
+          title: Text(AppStrings.t(AppStrings.deleteConfirmTitle, locale)),
+          content: Text(
+            AppStrings.t(AppStrings.deleteTagConfirm, locale)
+                .replaceAll('{name}', tag.name),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.errorLight,
-              foregroundColor: AppColors.pureWhite,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(AppStrings.t(AppStrings.cancel, locale)),
             ),
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              context.read<TagBloc>().add(TagDeleteEvent(id: tag.id));
-            },
-            child: const Text('Xóa'),
-          ),
-        ],
-      ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.errorLight,
+                foregroundColor: AppColors.pureWhite,
+              ),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                context.read<TagBloc>().add(TagDeleteEvent(id: tag.id));
+              },
+              child: Text(AppStrings.t(AppStrings.delete, locale)),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -104,10 +112,11 @@ class _TagsScreenState extends State<TagsScreen> {
   Widget build(BuildContext context) {
     return BlocListener<TagBloc, TagState>(
       listener: (context, state) {
+        final locale = context.read<LocaleCubit>().state.locale;
         if (state is TagOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.successLight,
             ),
           );
@@ -118,7 +127,7 @@ class _TagsScreenState extends State<TagsScreen> {
               : (state as TagListError).message;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(message),
+              content: Text(AppStrings.t(message, locale)),
               backgroundColor: AppColors.errorLight,
             ),
           );
@@ -167,6 +176,7 @@ class _TagsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final isLight = Theme.of(context).brightness == Brightness.light;
     final bgColor = isLight ? AppColors.pureWhite : AppColors.darkBackground;
     final textPrimary = isLight
@@ -197,7 +207,7 @@ class _TagsContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Tags',
+                        AppStrings.t(AppStrings.tags, locale),
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               color: textPrimary,
@@ -206,7 +216,7 @@ class _TagsContent extends StatelessWidget {
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        '$totalElements items',
+                        '$totalElements ${AppStrings.t(AppStrings.tagsCount, locale)}',
                         style: TextStyle(color: textSecondary),
                       ),
                     ],
@@ -215,7 +225,7 @@ class _TagsContent extends StatelessWidget {
                   ElevatedButton.icon(
                     onPressed: onAdd,
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Thêm tag'),
+                    label: Text(AppStrings.t(AppStrings.addTag, locale)),
                   ),
                 ],
               ),
@@ -228,7 +238,7 @@ class _TagsContent extends StatelessWidget {
                       controller: searchController,
                       style: TextStyle(fontSize: 14, color: textPrimary),
                       decoration: InputDecoration(
-                        hintText: 'Tìm tag...',
+                        hintText: AppStrings.t(AppStrings.searchTag, locale),
                         prefixIcon: const Icon(Icons.search, size: 18),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -243,12 +253,12 @@ class _TagsContent extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSpacing.md),
                   SegmentedButton<String>(
-                    segments: const [
-                      ButtonSegment(value: 'all', label: Text('All')),
-                      ButtonSegment(value: 'mood', label: Text('Mood')),
-                      ButtonSegment(value: 'theme', label: Text('Theme')),
-                      ButtonSegment(value: 'activity', label: Text('Activity')),
-                      ButtonSegment(value: 'era', label: Text('Era')),
+                    segments: [
+                      ButtonSegment(value: 'all', label: Text(AppStrings.t(AppStrings.all, locale))),
+                      ButtonSegment(value: 'mood', label: Text(AppStrings.t(AppStrings.mood, locale))),
+                      ButtonSegment(value: 'theme', label: Text(AppStrings.t(AppStrings.theme, locale))),
+                      ButtonSegment(value: 'activity', label: Text(AppStrings.t(AppStrings.activity, locale))),
+                      ButtonSegment(value: 'era', label: Text(AppStrings.t(AppStrings.era, locale))),
                     ],
                     selected: {selectedType ?? 'all'},
                     onSelectionChanged: (value) {
@@ -279,7 +289,7 @@ class _TagsContent extends StatelessWidget {
                           ? () => onPageChanged(currentPage - 1)
                           : null,
                     ),
-                    Text('Trang ${currentPage + 1} / $totalPages'),
+                    Text('${AppStrings.t(AppStrings.pageOf, locale)} ${currentPage + 1} / $totalPages'),
                     IconButton(
                       icon: const Icon(Icons.chevron_right),
                       onPressed: currentPage < totalPages - 1

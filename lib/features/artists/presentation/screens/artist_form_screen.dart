@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
 import 'package:ondas_web/features/artists/domain/entities/artist.dart';
@@ -74,10 +76,11 @@ class _ArtistFormScreenState extends State<ArtistFormScreen> {
 
     return BlocListener<ArtistBloc, ArtistState>(
       listener: (context, state) {
+        final locale = context.read<LocaleCubit>().state.locale;
         if (state is ArtistOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.successLight,
             ),
           );
@@ -85,7 +88,7 @@ class _ArtistFormScreenState extends State<ArtistFormScreen> {
         } else if (state is ArtistOperationError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.errorLight,
             ),
           );
@@ -119,7 +122,9 @@ class _ArtistFormScreenState extends State<ArtistFormScreen> {
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Text(
-                        widget.isEditing ? 'Chỉnh sửa nghệ sĩ' : 'Thêm nghệ sĩ mới',
+                        widget.isEditing
+                            ? AppStrings.t(AppStrings.editArtist, context.watch<LocaleCubit>().state.locale)
+                            : AppStrings.t(AppStrings.createArtist, context.watch<LocaleCubit>().state.locale),
                         style: Theme.of(context)
                             .textTheme
                             .headlineSmall

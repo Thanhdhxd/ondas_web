@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
 import 'package:ondas_web/features/tags/presentation/bloc/tag_bloc.dart';
@@ -57,10 +59,11 @@ class _TagFormScreenState extends State<TagFormScreen> {
 
     return BlocListener<TagBloc, TagState>(
       listener: (context, state) {
+        final locale = context.read<LocaleCubit>().state.locale;
         if (state is TagOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.successLight,
             ),
           );
@@ -68,7 +71,7 @@ class _TagFormScreenState extends State<TagFormScreen> {
         } else if (state is TagOperationError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.errorLight,
             ),
           );
@@ -78,6 +81,7 @@ class _TagFormScreenState extends State<TagFormScreen> {
         color: bgColor,
         child: BlocBuilder<TagBloc, TagState>(
           builder: (context, state) {
+            final locale = context.watch<LocaleCubit>().state.locale;
             final isLoading = state is TagOperationInProgress;
             final isDetailLoading = state is TagDetailLoading;
             final tag = state is TagDetailLoaded ? state.tag : null;
@@ -96,7 +100,9 @@ class _TagFormScreenState extends State<TagFormScreen> {
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Text(
-                        widget.isEditing ? 'Sửa tag' : 'Thêm tag',
+                        widget.isEditing
+                            ? AppStrings.t(AppStrings.editTag, locale)
+                            : AppStrings.t(AppStrings.addTag, locale),
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               color: textPrimary,

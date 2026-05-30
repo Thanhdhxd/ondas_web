@@ -3,6 +3,9 @@ import 'dart:html' as html;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
@@ -146,6 +149,7 @@ class _ArtistFormWidgetState extends State<ArtistFormWidget> {
         isLight ? AppColors.stone : AppColors.darkTextSecondary;
     final borderColor = isLight ? AppColors.borderLight : AppColors.darkBorder;
     final bgCard = isLight ? AppColors.snow : AppColors.darkSurface;
+    final locale = context.watch<LocaleCubit>().state.locale;
 
     return Form(
       key: _formKey,
@@ -211,7 +215,7 @@ class _ArtistFormWidgetState extends State<ArtistFormWidget> {
                     vertical: AppSpacing.smMd,
                   ),
                 ),
-                child: const Text('Huỷ'),
+                child: Text(AppStrings.t(AppStrings.cancel, locale)),
               ),
               const SizedBox(width: AppSpacing.md),
               ElevatedButton(
@@ -237,7 +241,9 @@ class _ArtistFormWidgetState extends State<ArtistFormWidget> {
                         ),
                       )
                     : Text(
-                        widget.initialArtist != null ? 'Cập nhật' : 'Tạo mới',
+                        widget.initialArtist != null
+                            ? AppStrings.t(AppStrings.updateBtn, locale)
+                            : AppStrings.t(AppStrings.createBtn, locale),
                       ),
               ),
             ],
@@ -273,6 +279,7 @@ class _FieldsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     return Container(
       decoration: BoxDecoration(
         color: bgCard,
@@ -284,7 +291,7 @@ class _FieldsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Thông tin cơ bản',
+            AppStrings.t(AppStrings.basicInfo, locale),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: textPrimary,
                   fontWeight: FontWeight.w600,
@@ -293,13 +300,13 @@ class _FieldsCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xxl),
           _FormField(
             key: const Key('artistForm_nameField'),
-            label: 'Tên nghệ sĩ *',
+            label: '${AppStrings.t(AppStrings.artistName, locale)} *',
             controller: nameCtrl,
-            hintText: 'VD: Sơn Tùng M-TP',
+            hintText: AppStrings.t(AppStrings.artistNameHint, locale),
             textColor: textPrimary,
             borderColor: borderColor,
             validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'Không được để trống' : null,
+                (v == null || v.trim().isEmpty) ? AppStrings.t(AppStrings.validationNotBlank, locale) : null,
           ),
           const SizedBox(height: AppSpacing.xl),
           Row(
@@ -308,9 +315,9 @@ class _FieldsCard extends StatelessWidget {
               Expanded(
                 child: _FormField(
                   key: const Key('artistForm_countryField'),
-                  label: 'Quốc gia',
+                  label: AppStrings.t(AppStrings.country, locale),
                   controller: countryCtrl,
-                  hintText: 'VD: Việt Nam',
+                  hintText: AppStrings.t(AppStrings.countryHint, locale),
                   textColor: textPrimary,
                   borderColor: borderColor,
                 ),
@@ -319,9 +326,9 @@ class _FieldsCard extends StatelessWidget {
               Expanded(
                 child: _FormField(
                   key: const Key('artistForm_slugField'),
-                  label: 'Slug',
+                  label: AppStrings.t(AppStrings.slug, locale),
                   controller: slugCtrl,
-                  hintText: 'son-tung-m-tp',
+                  hintText: AppStrings.t(AppStrings.slugHint, locale),
                   textColor: textPrimary,
                   borderColor: borderColor,
                   onChanged: (_) => onSlugChanged(),
@@ -332,9 +339,9 @@ class _FieldsCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xl),
           _FormField(
             key: const Key('artistForm_bioField'),
-            label: 'Tiểu sử',
+            label: AppStrings.t(AppStrings.bio, locale),
             controller: bioCtrl,
-            hintText: 'Mô tả về nghệ sĩ...',
+            hintText: AppStrings.t(AppStrings.bioHint, locale),
             textColor: textPrimary,
             borderColor: borderColor,
             maxLines: 5,
@@ -374,6 +381,7 @@ class _AvatarCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     ImageProvider? image;
     if (previewBytes != null) {
       image = MemoryImage(previewBytes!);
@@ -396,7 +404,7 @@ class _AvatarCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Ảnh đại diện',
+            AppStrings.t(AppStrings.avatar, locale),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: textPrimary,
                   fontWeight: FontWeight.w600,
@@ -425,7 +433,7 @@ class _AvatarCard extends StatelessWidget {
             key: const Key('artistForm_avatarPickButton'),
             onPressed: isLoading ? null : onPick,
             icon: const Icon(Icons.upload_outlined, size: 14),
-            label: const Text('Tải ảnh lên'),
+            label: Text(AppStrings.t(AppStrings.uploadImage, locale)),
             style: OutlinedButton.styleFrom(
               foregroundColor: textSecondary,
               side: BorderSide(color: borderColor),
@@ -451,7 +459,7 @@ class _AvatarCard extends StatelessWidget {
           ],
           const Spacer(),
           Text(
-            'PNG, JPG hoặc WEBP. Tối đa 2 MB.',
+            AppStrings.t(AppStrings.avatarHint, locale),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: textSecondary,
                   fontSize: 11,

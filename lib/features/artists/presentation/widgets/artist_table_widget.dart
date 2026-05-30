@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
@@ -29,6 +32,7 @@ class ArtistTableWidget extends StatelessWidget {
         isLight ? AppColors.nearBlack : AppColors.darkTextPrimary;
     final textSecondary =
         isLight ? AppColors.stone : AppColors.darkTextSecondary;
+    final locale = context.watch<LocaleCubit>().state.locale;
 
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -37,7 +41,7 @@ class ArtistTableWidget extends StatelessWidget {
     if (artists.isEmpty) {
       return Center(
         child: Text(
-          'Không có nghệ sĩ nào.',
+          AppStrings.t(AppStrings.noArtists, locale),
           style: Theme.of(context)
               .textTheme
               .bodyMedium
@@ -61,7 +65,7 @@ class ArtistTableWidget extends StatelessWidget {
           4: FixedColumnWidth(120),
         },
         children: [
-          _buildHeader(headerColor, borderColor, textSecondary),
+          _buildHeader(headerColor, borderColor, textSecondary, locale),
           ...artists.asMap().entries.map(
                 (entry) => _buildRow(
                   context,
@@ -71,6 +75,7 @@ class ArtistTableWidget extends StatelessWidget {
                   textPrimary,
                   textSecondary,
                   borderColor,
+                  locale,
                 ),
               ),
         ],
@@ -82,6 +87,7 @@ class ArtistTableWidget extends StatelessWidget {
     Color headerColor,
     Color borderColor,
     Color textSecondary,
+    Locale locale,
   ) {
     return TableRow(
       decoration: BoxDecoration(
@@ -90,10 +96,10 @@ class ArtistTableWidget extends StatelessWidget {
       ),
       children: [
         _headerCell('', textSecondary),
-        _headerCell('Tên nghệ sĩ', textSecondary),
-        _headerCell('Quốc gia', textSecondary),
-        _headerCell('Slug', textSecondary),
-        _headerCell('Hành động', textSecondary),
+        _headerCell(AppStrings.t(AppStrings.artistName, locale), textSecondary),
+        _headerCell(AppStrings.t(AppStrings.country, locale), textSecondary),
+        _headerCell(AppStrings.t(AppStrings.slug, locale), textSecondary),
+        _headerCell(AppStrings.t(AppStrings.actions, locale), textSecondary),
       ],
     );
   }
@@ -124,6 +130,7 @@ class ArtistTableWidget extends StatelessWidget {
     Color textPrimary,
     Color textSecondary,
     Color borderColor,
+    Locale locale,
   ) {
     final rowBg = isEven
         ? Colors.transparent
@@ -195,7 +202,7 @@ class ArtistTableWidget extends StatelessWidget {
               IconButton(
                 key: Key('artistTable_editButton_${artist.id}'),
                 icon: const Icon(Icons.edit_outlined, size: 18),
-                tooltip: 'Chỉnh sửa',
+                tooltip: AppStrings.t(AppStrings.edit, locale),
                 onPressed: () => onEdit(artist),
                 color: textSecondary,
                 visualDensity: VisualDensity.compact,
@@ -203,7 +210,7 @@ class ArtistTableWidget extends StatelessWidget {
               IconButton(
                 key: Key('artistTable_deleteButton_${artist.id}'),
                 icon: const Icon(Icons.delete_outline, size: 18),
-                tooltip: 'Xóa',
+                tooltip: AppStrings.t(AppStrings.delete, locale),
                 onPressed: () => onDelete(artist),
                 color: AppColors.errorLight,
                 visualDensity: VisualDensity.compact,

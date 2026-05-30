@@ -3,6 +3,9 @@ import 'dart:html' as html;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
@@ -164,10 +167,11 @@ class _AlbumFormWidgetState extends State<AlbumFormWidget> {
   }
 
   Future<void> _pickArtists() async {
+    final locale = context.read<LocaleCubit>().state.locale;
     final selected = await showDialog<Set<String>>(
       context: context,
       builder: (_) => _MultiSelectDialog<String>(
-        title: 'Chọn nghệ sĩ',
+        title: AppStrings.t(AppStrings.selectArtist, locale),
         options: widget.artistOptions,
         selectedValues: _selectedArtistIds,
       ),
@@ -192,15 +196,16 @@ class _AlbumFormWidgetState extends State<AlbumFormWidget> {
   }
 
   Future<void> _pickReleaseDate() async {
+    final locale = context.read<LocaleCubit>().state.locale;
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedReleaseDate ?? now,
       firstDate: DateTime(1900),
       lastDate: DateTime(2100),
-      helpText: 'Chọn ngày phát hành',
-      cancelText: 'Hủy',
-      confirmText: 'Chọn',
+      helpText: AppStrings.t(AppStrings.releaseDate, locale),
+      cancelText: AppStrings.t(AppStrings.cancel, locale),
+      confirmText: AppStrings.t(AppStrings.confirm, locale),
     );
     if (picked != null) {
       setState(() => _selectedReleaseDate = picked);
@@ -208,11 +213,12 @@ class _AlbumFormWidgetState extends State<AlbumFormWidget> {
   }
 
   void _submit() {
+    final locale = context.read<LocaleCubit>().state.locale;
     if (!_formKey.currentState!.validate()) return;
     if (_selectedArtistIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vui lòng chọn ít nhất 1 nghệ sĩ.'),
+        SnackBar(
+          content: Text(AppStrings.t(AppStrings.atLeastOneArtist, locale)),
           backgroundColor: AppColors.errorLight,
         ),
       );
@@ -315,7 +321,10 @@ class _AlbumFormWidgetState extends State<AlbumFormWidget> {
                     vertical: AppSpacing.smMd,
                   ),
                 ),
-                child: const Text('Huỷ'),
+                child: Text(AppStrings.t(
+                  AppStrings.cancel,
+                  context.watch<LocaleCubit>().state.locale,
+                )),
               ),
               const SizedBox(width: AppSpacing.md),
               ElevatedButton(
@@ -339,7 +348,9 @@ class _AlbumFormWidgetState extends State<AlbumFormWidget> {
                         ),
                       )
                     : Text(
-                        widget.initialAlbum != null ? 'Cập nhật' : 'Tạo mới',
+                        widget.initialAlbum != null
+                            ? AppStrings.t(AppStrings.updateBtn, context.watch<LocaleCubit>().state.locale)
+                            : AppStrings.t(AppStrings.createBtn, context.watch<LocaleCubit>().state.locale),
                       ),
               ),
             ],
@@ -402,7 +413,7 @@ class _FieldsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Thông tin album',
+            AppStrings.t(AppStrings.albumInfo, context.watch<LocaleCubit>().state.locale),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: textPrimary,
                   fontWeight: FontWeight.w600,
@@ -410,13 +421,14 @@ class _FieldsCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xxl),
           _FormField(
-            label: 'Tiêu đề *',
+            label: AppStrings.t(AppStrings.albumTitle, context.watch<LocaleCubit>().state.locale),
             controller: titleCtrl,
             hintText: 'VD: Tâm 9',
             textColor: textPrimary,
             borderColor: borderColor,
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'Không được để trống' : null,
+            validator: (v) => (v == null || v.trim().isEmpty)
+                ? AppStrings.t(AppStrings.titleRequired, context.watch<LocaleCubit>().state.locale)
+                : null,
           ),
           const SizedBox(height: AppSpacing.xl),
           Row(
@@ -426,9 +438,9 @@ class _FieldsCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Loại album',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                    Text(
+                      AppStrings.t(AppStrings.albumType, context.watch<LocaleCubit>().state.locale),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     DropdownButtonFormField<String>(
@@ -469,9 +481,9 @@ class _FieldsCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Ngày phát hành',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                    Text(
+                      AppStrings.t(AppStrings.releaseDate, context.watch<LocaleCubit>().state.locale),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     InkWell(
@@ -492,7 +504,7 @@ class _FieldsCard extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 selectedReleaseDate == null
-                                    ? 'Chọn ngày...'
+                                    ? AppStrings.t(AppStrings.pickDate, context.watch<LocaleCubit>().state.locale)
                                     : '${selectedReleaseDate!.day.toString().padLeft(2, '0')}/'
                                       '${selectedReleaseDate!.month.toString().padLeft(2, '0')}/'
                                       '${selectedReleaseDate!.year}',
@@ -529,29 +541,29 @@ class _FieldsCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xl),
           _MultiSelectField<String>(
-            label: 'Nghệ sĩ *',
+            label: '${AppStrings.t(AppStrings.selectArtist, context.watch<LocaleCubit>().state.locale)} *',
             options: artistOptions,
             selectedValues: selectedArtistIds,
             onTap: onPickArtists,
             borderColor: borderColor,
             textColor: textPrimary,
-            hintText: 'Chọn nghệ sĩ',
+            hintText: AppStrings.t(AppStrings.selectArtist, context.watch<LocaleCubit>().state.locale),
           ),
           const SizedBox(height: AppSpacing.xl),
           _MultiSelectField<String>(
-            label: 'Bài hát (Tracklist)',
+            label: AppStrings.t(AppStrings.tracklist, context.watch<LocaleCubit>().state.locale),
             options: songOptions,
             selectedValues: selectedSongIds,
             onTap: onPickSongs,
             borderColor: borderColor,
             textColor: textPrimary,
-            hintText: 'Chọn bài hát vào album',
+            hintText: AppStrings.t(AppStrings.selectSong, context.watch<LocaleCubit>().state.locale),
           ),
           const SizedBox(height: AppSpacing.xl),
           _FormField(
-            label: 'Mô tả',
+            label: AppStrings.t(AppStrings.albumDescription, context.watch<LocaleCubit>().state.locale),
             controller: descriptionCtrl,
-            hintText: 'Mô tả về album...',
+            hintText: '${AppStrings.t(AppStrings.albumDescription, context.watch<LocaleCubit>().state.locale)}...',
             textColor: textPrimary,
             borderColor: borderColor,
             maxLines: 3,
@@ -607,7 +619,7 @@ class _CoverCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Ảnh bìa',
+            AppStrings.t(AppStrings.coverImage, context.watch<LocaleCubit>().state.locale),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: textPrimary,
                   fontWeight: FontWeight.w600,
@@ -634,7 +646,7 @@ class _CoverCard extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: isLoading ? null : onPick,
             icon: const Icon(Icons.upload_outlined, size: 14),
-            label: const Text('Tải ảnh lên'),
+            label: Text(AppStrings.t(AppStrings.uploadImage, context.watch<LocaleCubit>().state.locale)),
             style: OutlinedButton.styleFrom(
               foregroundColor: textSecondary,
               side: BorderSide(color: borderColor),
@@ -652,9 +664,9 @@ class _CoverCard extends StatelessWidget {
             ),
           ],
           const Spacer(),
-          const Text(
-            'PNG, JPG hoặc WEBP. Tối đa 5 MB.',
-            style: TextStyle(fontSize: 11, color: AppColors.stone),
+          Text(
+            AppStrings.t(AppStrings.imageHint, context.watch<LocaleCubit>().state.locale),
+            style: const TextStyle(fontSize: 11, color: AppColors.stone),
             textAlign: TextAlign.center,
           ),
         ],
@@ -858,9 +870,9 @@ class _MultiSelectDialogState<T> extends State<_MultiSelectDialog<T>> {
           children: [
             TextField(
               controller: _searchCtrl,
-              decoration: const InputDecoration(
-                hintText: 'Tìm kiếm...',
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                hintText: '${AppStrings.t(AppStrings.search, context.watch<LocaleCubit>().state.locale)}...',
+                prefixIcon: const Icon(Icons.search),
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -893,11 +905,11 @@ class _MultiSelectDialogState<T> extends State<_MultiSelectDialog<T>> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Huỷ'),
+          child: Text(AppStrings.t(AppStrings.cancel, context.watch<LocaleCubit>().state.locale)),
         ),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(_working),
-          child: const Text('Xong'),
+          child: Text(AppStrings.t(AppStrings.confirm, context.watch<LocaleCubit>().state.locale)),
         ),
       ],
     );
@@ -981,7 +993,7 @@ class _SongSelectDialogState extends State<_SongSelectDialog> {
         .toList();
 
     return AlertDialog(
-      title: const Text('Chọn bài hát'),
+      title: Text(AppStrings.t(AppStrings.selectSong, context.watch<LocaleCubit>().state.locale)),
       content: SizedBox(
         width: 420,
         height: 480,
@@ -989,13 +1001,13 @@ class _SongSelectDialogState extends State<_SongSelectDialog> {
           children: [
             TextField(
               controller: _searchCtrl,
-              decoration: const InputDecoration(
-                hintText: 'Tìm kiếm bài hát...',
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                hintText: '${AppStrings.t(AppStrings.search, context.watch<LocaleCubit>().state.locale)}...',
+                prefixIcon: const Icon(Icons.search),
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            // Chú thích
+            // Legend
             Row(
               children: [
                 Container(
@@ -1046,9 +1058,9 @@ class _SongSelectDialogState extends State<_SongSelectDialog> {
                               color: AppColors.errorLight.withAlpha(20),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
-                              'Đã có album',
-                              style: TextStyle(
+                            child: Text(
+                              AppStrings.t(AppStrings.songAlreadyInAlbum, context.watch<LocaleCubit>().state.locale),
+                              style: const TextStyle(
                                 fontSize: 10,
                                 color: AppColors.errorLight,
                                 fontWeight: FontWeight.w600,
@@ -1072,11 +1084,11 @@ class _SongSelectDialogState extends State<_SongSelectDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Huỷ'),
+          child: Text(AppStrings.t(AppStrings.cancel, context.watch<LocaleCubit>().state.locale)),
         ),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(_working),
-          child: const Text('Xong'),
+          child: Text(AppStrings.t(AppStrings.confirm, context.watch<LocaleCubit>().state.locale)),
         ),
       ],
     );

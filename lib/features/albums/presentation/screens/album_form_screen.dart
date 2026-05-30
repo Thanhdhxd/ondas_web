@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
 import 'package:ondas_web/features/albums/domain/entities/album.dart';
@@ -96,13 +98,13 @@ class _AlbumFormScreenState extends State<AlbumFormScreen> {
       listeners: [
         BlocListener<AlbumBloc, AlbumState>(
           listener: (context, state) {
+            final locale = context.read<LocaleCubit>().state.locale;
             if (state is AlbumDetailLoaded) {
-              // Cache album để giữ qua các state transitions
               _cachedAlbum = state.album;
             } else if (state is AlbumOperationSuccess) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(state.message),
+                  content: Text(AppStrings.t(state.message, locale)),
                   backgroundColor: AppColors.successLight,
                 ),
               );
@@ -110,7 +112,7 @@ class _AlbumFormScreenState extends State<AlbumFormScreen> {
             } else if (state is AlbumOperationError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(state.message),
+                  content: Text(AppStrings.t(state.message, locale)),
                   backgroundColor: AppColors.errorLight,
                 ),
               );
@@ -155,7 +157,9 @@ class _AlbumFormScreenState extends State<AlbumFormScreen> {
                               ),
                               const SizedBox(width: AppSpacing.sm),
                               Text(
-                                widget.isEditing ? 'Chỉnh sửa album' : 'Thêm album mới',
+                                widget.isEditing
+                                    ? AppStrings.t(AppStrings.editAlbum, context.watch<LocaleCubit>().state.locale)
+                                    : AppStrings.t(AppStrings.addAlbum, context.watch<LocaleCubit>().state.locale),
                                 style: Theme.of(context)
                                     .textTheme
                                     .headlineSmall

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
@@ -19,6 +22,7 @@ class SystemPlaylistTableWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final isLight = Theme.of(context).brightness == Brightness.light;
     final borderColor = isLight ? AppColors.lightGray : AppColors.darkBorder;
     final headerBg = isLight ? AppColors.snow : AppColors.darkSurface;
@@ -33,7 +37,7 @@ class SystemPlaylistTableWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.container),
         ),
         padding: const EdgeInsets.all(AppSpacing.xxl),
-        child: const Center(child: Text('Chưa có playlist nào')),
+        child: Center(child: Text(AppStrings.t(AppStrings.noPlaylists, locale))),
       );
     }
 
@@ -55,18 +59,18 @@ class SystemPlaylistTableWidget extends StatelessWidget {
               child: Row(
                 children: [
                   const SizedBox(width: 56),
-                  const Expanded(child: Text('Playlist')),
+                  Expanded(child: Text(AppStrings.t(AppStrings.playlist, locale))),
                   SizedBox(
                     width: 120,
                     child: Text(
-                      'Songs',
+                      AppStrings.t(AppStrings.songs, locale),
                       style: TextStyle(color: textSecondary),
                     ),
                   ),
                   SizedBox(
                     width: 180,
                     child: Text(
-                      'Updated',
+                      AppStrings.t(AppStrings.updated, locale),
                       style: TextStyle(color: textSecondary),
                     ),
                   ),
@@ -102,7 +106,9 @@ class SystemPlaylistTableWidget extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                playlist.isActive ? 'Active' : 'Inactive',
+                                playlist.isActive
+                                    ? AppStrings.t(AppStrings.activeStatus, locale)
+                                    : AppStrings.t(AppStrings.hiddenStatus, locale),
                                 style: TextStyle(color: textSecondary),
                               ),
                             ],
@@ -110,7 +116,9 @@ class SystemPlaylistTableWidget extends StatelessWidget {
                         ),
                         SizedBox(
                           width: 120,
-                          child: Text('${playlist.totalSongs} songs'),
+                          child: Text(
+                            '${playlist.totalSongs} ${AppStrings.t(AppStrings.songsCount, locale)}',
+                          ),
                         ),
                         SizedBox(
                           width: 180,
@@ -127,12 +135,12 @@ class SystemPlaylistTableWidget extends StatelessWidget {
                           spacing: AppSpacing.xs,
                           children: [
                             IconButton(
-                              tooltip: 'Sửa',
+                              tooltip: AppStrings.t(AppStrings.edit, locale),
                               icon: const Icon(Icons.edit_outlined),
                               onPressed: () => onEdit(playlist),
                             ),
                             IconButton(
-                              tooltip: 'Xóa',
+                              tooltip: AppStrings.t(AppStrings.delete, locale),
                               icon: const Icon(Icons.delete_outline),
                               onPressed: () => onDelete(playlist),
                             ),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
@@ -18,6 +21,7 @@ class TagTableWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final isLight = Theme.of(context).brightness == Brightness.light;
     final borderColor = isLight ? AppColors.lightGray : AppColors.darkBorder;
     final headerBg = isLight ? AppColors.snow : AppColors.darkSurface;
@@ -32,7 +36,7 @@ class TagTableWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.container),
         ),
         padding: const EdgeInsets.all(AppSpacing.xxl),
-        child: const Center(child: Text('Chưa có tag nào')),
+        child: Center(child: Text(AppStrings.t(AppStrings.noTagsYet, locale))),
       );
     }
 
@@ -54,18 +58,18 @@ class TagTableWidget extends StatelessWidget {
               child: Row(
                 children: [
                   const SizedBox(width: 40),
-                  const Expanded(child: Text('Tag')),
+                  Expanded(child: Text(AppStrings.t(AppStrings.tags, locale))),
                   SizedBox(
                     width: 160,
                     child: Text(
-                      'Type',
+                      AppStrings.t(AppStrings.tagTypeLabel, locale),
                       style: TextStyle(color: textSecondary),
                     ),
                   ),
                   SizedBox(
                     width: 140,
                     child: Text(
-                      'Color',
+                      AppStrings.t(AppStrings.tagColorLabel, locale),
                       style: TextStyle(color: textSecondary),
                     ),
                   ),
@@ -108,7 +112,9 @@ class TagTableWidget extends StatelessWidget {
                         SizedBox(
                           width: 160,
                           child: Text(
-                            tag.type?.isNotEmpty == true ? tag.type! : 'mood',
+                            tag.type?.isNotEmpty == true
+                                ? AppStrings.t(tag.type!, locale)
+                                : AppStrings.t(AppStrings.mood, locale),
                           ),
                         ),
                         SizedBox(
@@ -124,12 +130,12 @@ class TagTableWidget extends StatelessWidget {
                           spacing: AppSpacing.xs,
                           children: [
                             IconButton(
-                              tooltip: 'Sửa',
+                              tooltip: AppStrings.t(AppStrings.edit, locale),
                               icon: const Icon(Icons.edit_outlined),
                               onPressed: () => onEdit(tag),
                             ),
                             IconButton(
-                              tooltip: 'Xóa',
+                              tooltip: AppStrings.t(AppStrings.delete, locale),
                               icon: const Icon(Icons.delete_outline),
                               onPressed: () => onDelete(tag),
                             ),

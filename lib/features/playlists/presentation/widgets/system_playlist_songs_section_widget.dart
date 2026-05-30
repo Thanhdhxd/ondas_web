@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/di/injection.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
@@ -61,6 +63,7 @@ class SystemPlaylistSongsSectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final isLight = Theme.of(context).brightness == Brightness.light;
     final textPrimary = isLight
         ? AppColors.nearBlack
@@ -85,7 +88,7 @@ class SystemPlaylistSongsSectionWidget extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Danh sách bài hát',
+                  AppStrings.t(AppStrings.songList, locale),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: textPrimary,
                     fontWeight: FontWeight.w600,
@@ -102,7 +105,7 @@ class SystemPlaylistSongsSectionWidget extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: () => _openAddSongDialog(context),
                   icon: const Icon(Icons.add, size: 16),
-                  label: const Text('Thêm bài'),
+                  label: Text(AppStrings.t(AppStrings.addSong, locale)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: textSecondary,
                     side: BorderSide(color: borderColor),
@@ -113,7 +116,8 @@ class SystemPlaylistSongsSectionWidget extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Kéo thả để đổi thứ tự. ${songs.length} bài.',
+            AppStrings.t(AppStrings.reorderSongsDesc, locale)
+                .replaceAll('{count}', songs.length.toString()),
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: textSecondary),
@@ -124,7 +128,7 @@ class SystemPlaylistSongsSectionWidget extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
               child: Center(
                 child: Text(
-                  'Chưa có bài hát nào trong playlist.',
+                  AppStrings.t(AppStrings.emptyPlaylist, locale),
                   style: TextStyle(color: textSecondary),
                 ),
               ),
@@ -184,6 +188,7 @@ class _SongRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     return Material(
       key: key,
       color: Colors.transparent,
@@ -231,7 +236,7 @@ class _SongRow extends StatelessWidget {
               onPressed: isMutating ? null : onRemove,
               icon: const Icon(Icons.close, size: 18),
               color: AppColors.errorLight,
-              tooltip: 'Xóa khỏi playlist',
+              tooltip: AppStrings.t(AppStrings.removeFromPlaylist, locale),
             ),
           ],
         ),
@@ -322,12 +327,13 @@ class _AddSongDialogState extends State<_AddSongDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final filtered = _options
         .where((o) => o.title.toLowerCase().contains(_query.toLowerCase()))
         .toList();
 
     return AlertDialog(
-      title: const Text('Thêm bài vào playlist'),
+      title: Text(AppStrings.t(AppStrings.addSongToPlaylist, locale)),
       content: SizedBox(
         width: 480,
         height: 420,
@@ -335,8 +341,8 @@ class _AddSongDialogState extends State<_AddSongDialog> {
           children: [
             TextField(
               controller: _searchCtrl,
-              decoration: const InputDecoration(
-                hintText: 'Tìm bài hát...',
+              decoration: InputDecoration(
+                hintText: AppStrings.t(AppStrings.searchSong, locale),
                 prefixIcon: Icon(Icons.search, size: 18),
                 isDense: true,
                 border: OutlineInputBorder(),
@@ -353,7 +359,7 @@ class _AddSongDialogState extends State<_AddSongDialog> {
                   : _error != null
                   ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
                   : filtered.isEmpty
-                  ? const Center(child: Text('Không có bài hát phù hợp.'))
+                  ? Center(child: Text(AppStrings.t(AppStrings.noMatchingSongs, locale)))
                   : ListView.builder(
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
@@ -373,7 +379,7 @@ class _AddSongDialogState extends State<_AddSongDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Đóng'),
+          child: Text(AppStrings.t(AppStrings.close, locale)),
         ),
       ],
     );

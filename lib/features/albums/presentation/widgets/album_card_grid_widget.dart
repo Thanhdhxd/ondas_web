@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
@@ -29,6 +32,7 @@ class AlbumCardGridWidget extends StatelessWidget {
     }
 
     if (albums.isEmpty) {
+      final locale = context.watch<LocaleCubit>().state.locale;
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -40,7 +44,7 @@ class AlbumCardGridWidget extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'Không có album nào.',
+              AppStrings.t(AppStrings.noAlbums, locale),
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
@@ -220,7 +224,10 @@ class _AlbumCardState extends State<_AlbumCard> {
                     Text(
                       album.artistNames.isNotEmpty
                           ? album.artistNames.join(', ')
-                          : 'Chưa có nghệ sĩ',
+                          : AppStrings.t(
+                              AppStrings.noArtistYet,
+                              context.watch<LocaleCubit>().state.locale,
+                            ),
                       style: TextStyle(fontSize: 12, color: textSecondary),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -266,7 +273,7 @@ class _AlbumCardState extends State<_AlbumCard> {
                             key: Key('albumCard_editButton_${album.id}'),
                             padding: EdgeInsets.zero,
                             icon: const Icon(Icons.edit_rounded, size: 14),
-                            tooltip: 'Sửa',
+                            tooltip: AppStrings.t(AppStrings.edit, context.watch<LocaleCubit>().state.locale),
                             onPressed: () => widget.onEdit(album),
                             color: textSecondary,
                             hoverColor: isLight
@@ -285,7 +292,7 @@ class _AlbumCardState extends State<_AlbumCard> {
                             key: Key('albumCard_deleteButton_${album.id}'),
                             padding: EdgeInsets.zero,
                             icon: const Icon(Icons.delete_rounded, size: 14),
-                            tooltip: 'Xóa',
+                            tooltip: AppStrings.t(AppStrings.delete, context.watch<LocaleCubit>().state.locale),
                             onPressed: () => widget.onDelete(album),
                             color: AppColors.errorLight,
                             hoverColor: AppColors.errorSurfaceLight,

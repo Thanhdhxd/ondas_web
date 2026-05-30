@@ -36,5 +36,11 @@ class SecureStorage {
   Future<String?> getUserEmail() =>
       _storage.read(key: AppConstants.userEmailKey);
 
+  Future<void> saveLocale(String languageCode) =>
+      _storage.write(key: AppConstants.localeKey, value: languageCode);
+
+  Future<String?> getLocale() =>
+      _storage.read(key: AppConstants.localeKey);
+
   Future<void> clearAll() => _storage.deleteAll();
 }

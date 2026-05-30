@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/constants/app_constants.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
@@ -63,29 +65,35 @@ class _SystemPlaylistsScreenState extends State<SystemPlaylistsScreen> {
   void _onDelete(SystemPlaylist playlist) {
     showDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Xác nhận xóa'),
-        content: Text('Bạn có chắc muốn xóa playlist "${playlist.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Hủy'),
+      builder: (dialogContext) {
+        final locale = dialogContext.watch<LocaleCubit>().state.locale;
+        return AlertDialog(
+          title: Text(AppStrings.t(AppStrings.deleteConfirmTitle, locale)),
+          content: Text(
+            AppStrings.t(AppStrings.deletePlaylistConfirm, locale)
+                .replaceAll('{name}', playlist.name),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.errorLight,
-              foregroundColor: AppColors.pureWhite,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(AppStrings.t(AppStrings.cancel, locale)),
             ),
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              context.read<SystemPlaylistBloc>().add(
-                SystemPlaylistDeleteEvent(id: playlist.id),
-              );
-            },
-            child: const Text('Xóa'),
-          ),
-        ],
-      ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.errorLight,
+                foregroundColor: AppColors.pureWhite,
+              ),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                context.read<SystemPlaylistBloc>().add(
+                  SystemPlaylistDeleteEvent(id: playlist.id),
+                );
+              },
+              child: Text(AppStrings.t(AppStrings.delete, locale)),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -93,10 +101,11 @@ class _SystemPlaylistsScreenState extends State<SystemPlaylistsScreen> {
   Widget build(BuildContext context) {
     return BlocListener<SystemPlaylistBloc, SystemPlaylistState>(
       listener: (context, state) {
+        final locale = context.read<LocaleCubit>().state.locale;
         if (state is SystemPlaylistOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(AppStrings.t(state.message, locale)),
               backgroundColor: AppColors.successLight,
             ),
           );
@@ -108,10 +117,11 @@ class _SystemPlaylistsScreenState extends State<SystemPlaylistsScreen> {
               : (state as SystemPlaylistListError).message;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(message),
+              content: Text(AppStrings.t(message, locale)),
               backgroundColor: AppColors.errorLight,
             ),
           );
+          _load();
         }
       },
       child: _SystemPlaylistsContent(
@@ -163,6 +173,7 @@ class _SystemPlaylistsContent extends StatelessWidget {
         ? AppColors.stone
         : AppColors.darkTextSecondary;
     final borderColor = isLight ? AppColors.lightGray : AppColors.darkBorder;
+    final locale = context.watch<LocaleCubit>().state.locale;
 
     return BlocBuilder<SystemPlaylistBloc, SystemPlaylistState>(
       builder: (context, state) {
@@ -189,7 +200,7 @@ class _SystemPlaylistsContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'System Playlists',
+                        AppStrings.t(AppStrings.playlists, locale),
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               color: textPrimary,
@@ -198,7 +209,7 @@ class _SystemPlaylistsContent extends StatelessWidget {
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        '$totalElements system playlists',
+                        '$totalElements ${AppStrings.t(AppStrings.playlistCount, locale)}',
                         style: TextStyle(color: textSecondary),
                       ),
                     ],
@@ -207,7 +218,7 @@ class _SystemPlaylistsContent extends StatelessWidget {
                   ElevatedButton.icon(
                     onPressed: onAdd,
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Thêm system playlist'),
+                    label: Text(AppStrings.t(AppStrings.addPlaylist, locale)),
                   ),
                 ],
               ),
@@ -220,7 +231,7 @@ class _SystemPlaylistsContent extends StatelessWidget {
                       controller: searchController,
                       style: TextStyle(fontSize: 14, color: textPrimary),
                       decoration: InputDecoration(
-                        hintText: 'Tìm system playlist...',
+                        hintText: AppStrings.t(AppStrings.searchPlaylist, locale),
                         prefixIcon: const Icon(Icons.search, size: 18),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -256,7 +267,7 @@ class _SystemPlaylistsContent extends StatelessWidget {
                           ? () => onPageChanged(currentPage - 1)
                           : null,
                     ),
-                    Text('Trang ${currentPage + 1} / $totalPages'),
+                    Text('${AppStrings.t(AppStrings.pageOf, locale)} ${currentPage + 1} / $totalPages'),
                     IconButton(
                       icon: const Icon(Icons.chevron_right),
                       onPressed: currentPage < totalPages - 1

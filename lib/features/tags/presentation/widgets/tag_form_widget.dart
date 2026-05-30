@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ondas_web/app/localization/app_strings.dart';
+import 'package:ondas_web/app/localization/locale_cubit.dart';
 import 'package:ondas_web/core/theme/app_colors.dart';
 import 'package:ondas_web/core/theme/app_radius.dart';
 import 'package:ondas_web/core/theme/app_spacing.dart';
@@ -57,6 +60,7 @@ class _TagFormWidgetState extends State<TagFormWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.watch<LocaleCubit>().state.locale;
     final isLight = Theme.of(context).brightness == Brightness.light;
     final textPrimary = isLight
         ? AppColors.nearBlack
@@ -81,7 +85,7 @@ class _TagFormWidgetState extends State<TagFormWidget> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Thông tin Tag',
+              AppStrings.t(AppStrings.tagInfo, locale),
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: textPrimary,
                 fontWeight: FontWeight.w600,
@@ -90,21 +94,21 @@ class _TagFormWidgetState extends State<TagFormWidget> {
             const SizedBox(height: AppSpacing.xxl),
             _TagTextField(
               controller: _nameCtrl,
-              label: 'Tên *',
-              hintText: 'Happy',
+              label: '${AppStrings.t(AppStrings.tagName, locale)} *',
+              hintText: AppStrings.t(AppStrings.tagNameHint, locale),
               textColor: textPrimary,
               borderColor: borderColor,
               validator: (value) => value == null || value.trim().isEmpty
-                  ? 'Không được để trống'
+                  ? AppStrings.t(AppStrings.titleRequired, locale)
                   : null,
             ),
             const SizedBox(height: AppSpacing.xl),
             SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'mood', label: Text('Mood')),
-                ButtonSegment(value: 'theme', label: Text('Theme')),
-                ButtonSegment(value: 'activity', label: Text('Activity')),
-                ButtonSegment(value: 'era', label: Text('Era')),
+              segments: [
+                ButtonSegment(value: 'mood', label: Text(AppStrings.t(AppStrings.mood, locale))),
+                ButtonSegment(value: 'theme', label: Text(AppStrings.t(AppStrings.theme, locale))),
+                ButtonSegment(value: 'activity', label: Text(AppStrings.t(AppStrings.activity, locale))),
+                ButtonSegment(value: 'era', label: Text(AppStrings.t(AppStrings.era, locale))),
               ],
               selected: {_type},
               onSelectionChanged: widget.isLoading
@@ -114,8 +118,8 @@ class _TagFormWidgetState extends State<TagFormWidget> {
             const SizedBox(height: AppSpacing.xl),
             _TagTextField(
               controller: _colorCtrl,
-              label: 'Màu hex',
-              hintText: '#FF9900',
+              label: AppStrings.t(AppStrings.colorHexLabel, locale),
+              hintText: AppStrings.t(AppStrings.colorHexHint, locale),
               textColor: textPrimary,
               borderColor: borderColor,
               prefixIcon: Padding(
@@ -137,7 +141,7 @@ class _TagFormWidgetState extends State<TagFormWidget> {
                 if (text.isEmpty) return null;
                 return RegExp(r'^#[0-9A-Fa-f]{6}$').hasMatch(text)
                     ? null
-                    : 'Định dạng không hợp lệ #RRGGBB';
+                    : AppStrings.t(AppStrings.invalidHexColor, locale);
               },
             ),
             const SizedBox(height: AppSpacing.xxl),
@@ -151,7 +155,7 @@ class _TagFormWidgetState extends State<TagFormWidget> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: textSecondary,
                   ),
-                  child: const Text('Hủy'),
+                  child: Text(AppStrings.t(AppStrings.cancel, locale)),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 ElevatedButton(
@@ -163,7 +167,9 @@ class _TagFormWidgetState extends State<TagFormWidget> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : Text(
-                          widget.initialTag == null ? 'Tạo mới' : 'Cập nhật',
+                          widget.initialTag == null
+                              ? AppStrings.t(AppStrings.createBtn, locale)
+                              : AppStrings.t(AppStrings.updateBtn, locale),
                         ),
                 ),
               ],
