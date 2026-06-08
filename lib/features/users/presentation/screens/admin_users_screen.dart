@@ -12,6 +12,7 @@ import 'package:ondas_web/features/users/presentation/bloc/admin_user_bloc.dart'
 import 'package:ondas_web/features/users/presentation/bloc/admin_user_event.dart';
 import 'package:ondas_web/features/users/presentation/bloc/admin_user_state.dart';
 import 'package:ondas_web/features/users/presentation/widgets/admin_user_table_widget.dart';
+import 'package:ondas_web/core/di/injection.dart';
 
 class AdminUsersScreen extends StatefulWidget {
   const AdminUsersScreen({super.key});
@@ -88,14 +89,36 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
 
   Future<void> _openUserDetail(AdminUser user) async {
     final rootContext = context;
-    final bloc = context.read<AdminUserBloc>();
-    bloc.add(AdminUserLoadDetailEvent(id: user.id));
+    final detailBloc = sl<AdminUserBloc>();
+    detailBloc.add(AdminUserLoadDetailEvent(id: user.id));
     await showDialog<void>(
       context: context,
       useRootNavigator: false,
-      builder: (_) => BlocProvider.value(
-        value: bloc,
-        child: _UserDetailDialog(rootContext: rootContext, bloc: bloc),
+      builder: (_) => BlocProvider(
+        create: (_) => detailBloc,
+        child: BlocListener<AdminUserBloc, AdminUserState>(
+          bloc: detailBloc,
+          listener: (dialogCtx, state) {
+            final locale = dialogCtx.read<LocaleCubit>().state.locale;
+            if (state is AdminUserOperationSuccess) {
+              ScaffoldMessenger.of(rootContext).showSnackBar(
+                SnackBar(
+                  content: Text(AppStrings.t(state.message, locale)),
+                  backgroundColor: AppColors.successLight,
+                ),
+              );
+              _loadUsers();
+            } else if (state is AdminUserOperationError) {
+              ScaffoldMessenger.of(rootContext).showSnackBar(
+                SnackBar(
+                  content: Text(AppStrings.t(state.message, locale)),
+                  backgroundColor: AppColors.errorLight,
+                ),
+              );
+            }
+          },
+          child: _UserDetailDialog(rootContext: rootContext, bloc: detailBloc),
+        ),
       ),
     );
   }

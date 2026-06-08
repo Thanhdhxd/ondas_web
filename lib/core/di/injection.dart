@@ -170,6 +170,12 @@ Future<void> setupDependencies() async {
     () => DashboardBloc(
       logoutUseCase: sl<LogoutUseCase>(),
       secureStorage: sl<SecureStorage>(),
+      getSongsUseCase: sl<GetSongsUseCase>(),
+      getArtistsUseCase: sl<GetArtistsUseCase>(),
+      getAlbumsUseCase: sl<GetAlbumsUseCase>(),
+      getAdminUsersUseCase: sl<GetAdminUsersUseCase>(),
+      getActivityLogsUseCase: sl<GetActivityLogsUseCase>(),
+      adminStatsRepository: sl<AdminStatsRepository>(),
     ),
   );
 

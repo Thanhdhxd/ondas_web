@@ -232,23 +232,28 @@ class _TagsContent extends StatelessWidget {
               const SizedBox(height: AppSpacing.xxl),
               Row(
                 children: [
-                  SizedBox(
-                    width: 360,
-                    child: TextField(
-                      controller: searchController,
-                      style: TextStyle(fontSize: 14, color: textPrimary),
-                      decoration: InputDecoration(
-                        hintText: AppStrings.t(AppStrings.searchTag, locale),
-                        prefixIcon: const Icon(Icons.search, size: 18),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.pill),
-                          borderSide: BorderSide(color: borderColor),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 360),
+                        child: TextField(
+                          controller: searchController,
+                          style: TextStyle(fontSize: 14, color: textPrimary),
+                          decoration: InputDecoration(
+                            hintText: AppStrings.t(AppStrings.searchTag, locale),
+                            prefixIcon: const Icon(Icons.search, size: 18),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppRadius.pill),
+                              borderSide: BorderSide(color: borderColor),
+                            ),
+                          ),
+                          onSubmitted: onSearch,
+                          onChanged: (value) {
+                            if (value.isEmpty) onSearch('');
+                          },
                         ),
                       ),
-                      onSubmitted: onSearch,
-                      onChanged: (value) {
-                        if (value.isEmpty) onSearch('');
-                      },
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
