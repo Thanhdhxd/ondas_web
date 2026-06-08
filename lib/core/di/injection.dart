@@ -115,6 +115,18 @@ import 'package:ondas_web/features/tags/data/datasources/tag_remote_datasource_i
 import 'package:ondas_web/features/tags/data/repositories/tag_repository_impl.dart';
 import 'package:ondas_web/features/tags/domain/repositories/tag_repository.dart';
 import 'package:ondas_web/features/tags/presentation/bloc/tag_bloc.dart';
+import 'package:ondas_web/features/activity_log/data/datasources/activity_log_remote_datasource.dart';
+import 'package:ondas_web/features/activity_log/data/datasources/activity_log_remote_datasource_impl.dart';
+import 'package:ondas_web/features/activity_log/data/repositories/activity_log_repository_impl.dart';
+import 'package:ondas_web/features/activity_log/domain/repositories/activity_log_repository.dart';
+import 'package:ondas_web/features/activity_log/domain/usecases/get_activity_logs_usecase.dart';
+import 'package:ondas_web/features/activity_log/domain/usecases/get_activity_logs_usecase_impl.dart';
+import 'package:ondas_web/features/activity_log/presentation/bloc/activity_log_bloc.dart';
+import 'package:ondas_web/features/statistics/data/datasources/admin_stats_remote_datasource.dart';
+import 'package:ondas_web/features/statistics/data/datasources/admin_stats_remote_datasource_impl.dart';
+import 'package:ondas_web/features/statistics/data/repositories/admin_stats_repository_impl.dart';
+import 'package:ondas_web/features/statistics/domain/repositories/admin_stats_repository.dart';
+import 'package:ondas_web/features/statistics/presentation/bloc/admin_stats_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -371,5 +383,32 @@ Future<void> setupDependencies() async {
       updateSongLyricsUseCase: sl<UpdateSongLyricsUseCase>(),
       deleteSongLyricsUseCase: sl<DeleteSongLyricsUseCase>(),
     ),
+  );
+
+  // ── Activity Log Feature ───────────────────────────────────────────────
+  sl.registerLazySingleton<ActivityLogRemoteDataSource>(
+    () => ActivityLogRemoteDataSourceImpl(sl<DioClient>()),
+  );
+  sl.registerLazySingleton<ActivityLogRepository>(
+    () => ActivityLogRepositoryImpl(sl<ActivityLogRemoteDataSource>()),
+  );
+  sl.registerLazySingleton<GetActivityLogsUseCase>(
+    () => GetActivityLogsUseCaseImpl(sl<ActivityLogRepository>()),
+  );
+  sl.registerFactory<ActivityLogBloc>(
+    () => ActivityLogBloc(
+      getActivityLogsUseCase: sl<GetActivityLogsUseCase>(),
+    ),
+  );
+
+  // ── Statistics Feature ─────────────────────────────────────────────────
+  sl.registerLazySingleton<AdminStatsRemoteDataSource>(
+    () => AdminStatsRemoteDataSourceImpl(sl<DioClient>()),
+  );
+  sl.registerLazySingleton<AdminStatsRepository>(
+    () => AdminStatsRepositoryImpl(sl<AdminStatsRemoteDataSource>()),
+  );
+  sl.registerFactory<AdminStatsBloc>(
+    () => AdminStatsBloc(repository: sl<AdminStatsRepository>()),
   );
 }

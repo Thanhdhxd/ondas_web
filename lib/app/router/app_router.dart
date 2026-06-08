@@ -32,6 +32,10 @@ import 'package:ondas_web/features/albums/presentation/screens/album_form_screen
 import 'package:ondas_web/features/albums/presentation/screens/albums_screen.dart';
 import 'package:ondas_web/features/users/presentation/bloc/admin_user_bloc.dart';
 import 'package:ondas_web/features/users/presentation/screens/admin_users_screen.dart';
+import 'package:ondas_web/features/activity_log/presentation/bloc/activity_log_bloc.dart';
+import 'package:ondas_web/features/activity_log/presentation/screens/activity_log_screen.dart';
+import 'package:ondas_web/features/statistics/presentation/bloc/admin_stats_bloc.dart';
+import 'package:ondas_web/features/statistics/presentation/screens/admin_stats_screen.dart';
 
 GoRouter createRouter() {
   return GoRouter(
@@ -240,6 +244,22 @@ GoRouter createRouter() {
               child: const AdminUsersScreen(),
             ),
           ),
+          GoRoute(
+            path: AppConstants.routeActivityLog,
+            name: 'activityLog',
+            builder: (context, state) => BlocProvider(
+              create: (_) => sl<ActivityLogBloc>(),
+              child: const ActivityLogScreen(),
+            ),
+          ),
+          GoRoute(
+            path: AppConstants.routeStatistics,
+            name: 'statistics',
+            builder: (context, state) => BlocProvider(
+              create: (_) => sl<AdminStatsBloc>(),
+              child: const AdminStatsScreen(),
+            ),
+          ),
         ],
       ),
     ],
@@ -252,13 +272,13 @@ Future<String?> _guard(BuildContext context, GoRouterState state) async {
   final role = await sl<SecureStorage>().getUserRole();
   final isLoggedIn = token != null && token.isNotEmpty;
   final isOnLogin = state.matchedLocation == AppConstants.routeLogin;
-  final isUsersRoute = state.matchedLocation.startsWith(
-    AppConstants.routeUsers,
-  );
+  final isAdminOnlyRoute =
+      state.matchedLocation.startsWith(AppConstants.routeUsers) ||
+      state.matchedLocation.startsWith(AppConstants.routeActivityLog);
 
   if (!isLoggedIn && !isOnLogin) return AppConstants.routeLogin;
   if (isLoggedIn && isOnLogin) return AppConstants.routeDashboard;
-  if (isUsersRoute && role != AppConstants.roleAdmin) {
+  if (isAdminOnlyRoute && role != AppConstants.roleAdmin) {
     return AppConstants.routeDashboard;
   }
   return null;

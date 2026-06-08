@@ -269,6 +269,29 @@ abstract class AppStrings {
   static const String roleContentManagerLabel = 'role_content_manager_label';
   static const String roleAdminLabel = 'role_admin_label';
 
+  // Activity Log UI
+  static const String activityLog = 'activity_log';
+  static const String activityLogCount = 'activity_log_count';
+  static const String activityLogSearchHint = 'activity_log_search_hint';
+  static const String activityLogAction = 'activity_log_action';
+  static const String allActions = 'all_actions';
+  static const String activityLogActor = 'activity_log_actor';
+  static const String activityLogResource = 'activity_log_resource';
+  static const String activityLogResourceName = 'activity_log_resource_name';
+  static const String activityLogFrom = 'activity_log_from';
+  static const String activityLogTo = 'activity_log_to';
+
+  // Statistics UI
+  static const String statistics = 'statistics';
+  static const String statsSubtitle = 'stats_subtitle';
+  static const String statsPlaysDaily = 'stats_plays_daily';
+  static const String statsTopSongs = 'stats_top_songs';
+  static const String statsTopArtists = 'stats_top_artists';
+  static const String statsDau = 'stats_dau';
+  static const String statsDauSubtitle = 'stats_dau_subtitle';
+  static const String statsMau = 'stats_mau';
+  static const String statsMauSubtitle = 'stats_mau_subtitle';
+
 
   // ── Response code keys (từ backend, dùng trực tiếp làm key) ───────────────
   // Success
@@ -622,6 +645,29 @@ abstract class AppStrings {
     'role_content_manager_label': 'Quản lý nội dung',
     'role_admin_label': 'Quản trị',
 
+    // Activity Log UI
+    'activity_log': 'Nhật ký hoạt động',
+    'activity_log_count': 'bản ghi',
+    'activity_log_search_hint': 'Tìm theo email hoặc tên admin...',
+    'activity_log_action': 'Hành động',
+    'all_actions': 'Tất cả hành động',
+    'activity_log_actor': 'Thực hiện bởi',
+    'activity_log_resource': 'Loại tài nguyên',
+    'activity_log_resource_name': 'Tên tài nguyên',
+    'activity_log_from': 'Từ ngày',
+    'activity_log_to': 'Đến ngày',
+
+    // Statistics UI
+    'statistics': 'Thống kê',
+    'stats_subtitle': 'Phân tích dữ liệu nghe nhạc và hoạt động người dùng.',
+    'stats_plays_daily': 'Lượt phát theo ngày',
+    'stats_top_songs': 'Top bài hát',
+    'stats_top_artists': 'Top nghệ sĩ',
+    'stats_dau': 'DAU',
+    'stats_dau_subtitle': 'Người dùng hoạt động ngày {date}',
+    'stats_mau': 'MAU',
+    'stats_mau_subtitle': 'Người dùng hoạt động trong {days} ngày gần nhất',
+
     // ── Response codes ───────────────────────────────────────────────────────
     'success.ok': 'Thành công',
 
@@ -958,6 +1004,29 @@ abstract class AppStrings {
     'role_user_label': 'User',
     'role_content_manager_label': 'Content Manager',
     'role_admin_label': 'Admin',
+
+    // Activity Log UI
+    'activity_log': 'Activity Log',
+    'activity_log_count': 'records',
+    'activity_log_search_hint': 'Search by email or admin name...',
+    'activity_log_action': 'Action',
+    'all_actions': 'All Actions',
+    'activity_log_actor': 'Performed By',
+    'activity_log_resource': 'Resource Type',
+    'activity_log_resource_name': 'Resource Name',
+    'activity_log_from': 'From',
+    'activity_log_to': 'To',
+
+    // Statistics UI
+    'statistics': 'Statistics',
+    'stats_subtitle': 'Analyze music play data and user activity.',
+    'stats_plays_daily': 'Daily Play Count',
+    'stats_top_songs': 'Top Songs',
+    'stats_top_artists': 'Top Artists',
+    'stats_dau': 'DAU',
+    'stats_dau_subtitle': 'Active users on {date}',
+    'stats_mau': 'MAU',
+    'stats_mau_subtitle': 'Active users in last {days} days',
 
     // ── Response codes ───────────────────────────────────────────────────────
     'success.ok': 'Success',

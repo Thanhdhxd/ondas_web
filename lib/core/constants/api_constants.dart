@@ -62,4 +62,13 @@ abstract class ApiConstants {
 
   // Lyrics
   static String songLyrics(String songId) => '/api/songs/$songId/lyrics';
+
+  // Admin activity logs
+  static const String adminActivityLogs = '/api/admin/activity-logs';
+
+  // Admin statistics
+  static const String adminStatsTopSongs = '/api/admin/stats/top-songs';
+  static const String adminStatsTopArtists = '/api/admin/stats/top-artists';
+  static const String adminStatsPlaysDaily = '/api/admin/stats/plays-daily';
+  static const String adminStatsDauMau = '/api/admin/stats/dau-mau';
 }
