@@ -66,6 +66,16 @@ const kAdminNavItems = [
     icon: Icons.people_outline,
     route: AppConstants.routeUsers,
   ),
+  AdminNavItem(
+    labelKey: AppStrings.activityLog,
+    icon: Icons.history_outlined,
+    route: AppConstants.routeActivityLog,
+  ),
+  AdminNavItem(
+    labelKey: AppStrings.statistics,
+    icon: Icons.bar_chart_outlined,
+    route: AppConstants.routeStatistics,
+  ),
 ];
 
 // ─── Sidebar ───────────────────────────────────────────────────────────────────
@@ -88,7 +98,11 @@ class AdminSidebar extends StatelessWidget {
             final items = role == AppConstants.roleAdmin
                 ? kAdminNavItems
                 : kAdminNavItems
-                      .where((item) => item.route != AppConstants.routeUsers)
+                      .where(
+                        (item) =>
+                            item.route != AppConstants.routeUsers &&
+                            item.route != AppConstants.routeActivityLog,
+                      )
                       .toList();
 
             return Container(
@@ -201,11 +215,14 @@ class _SidebarNavItem extends StatelessWidget {
             children: [
               Icon(icon, size: 18, color: textColor),
               const SizedBox(width: AppSpacing.md),
-              Text(
-                label,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: textColor),
+              Expanded(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: textColor),
+                ),
               ),
             ],
           ),

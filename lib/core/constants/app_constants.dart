@@ -29,4 +29,6 @@ abstract class AppConstants {
   static const String routeTags = '/admin/tags';
   static const String routePlaylists = '/admin/system-playlists';
   static const String routeUsers = '/admin/users';
+  static const String routeActivityLog = '/admin/activity-log';
+  static const String routeStatistics = '/admin/statistics';
 }
